@@ -3,7 +3,6 @@
  * Analyzes portfolio websites for brand presence quality
  */
 
-import { getOpenAIKey } from './apiKey';
 
 export interface PortfolioAnalysis {
   url: string;
@@ -123,11 +122,6 @@ export async function analyzePortfolioWithAI(
   issues: string[];
   strengths: string[];
 }> {
-  const apiKey = getOpenAIKey();
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set it in Settings.');
-  }
 
   // Extract text content (remove scripts, styles, etc.)
   const parser = new DOMParser();
@@ -173,41 +167,34 @@ Website content:
 ${contentToAnalyze}`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 1000,
+        systemMessage: 'You are an expert portfolio website analyst. Analyze portfolio websites and return only valid JSON.',
+        prompt: prompt,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || 'Failed to analyze portfolio');
+      throw new Error(errorData.error || 'Failed to analyze portfolio');
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    const content = data.content;
     
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from AI');
     }
 
     // Extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format');
     }
 
     const analysis = JSON.parse(jsonMatch[0]);

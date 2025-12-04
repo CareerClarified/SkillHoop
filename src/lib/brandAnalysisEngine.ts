@@ -3,7 +3,6 @@
  * Core analysis logic using OpenAI for comprehensive brand scoring and recommendations
  */
 
-import { getOpenAIKey } from './apiKey';
 import type { ResumeData } from './resumeParser';
 import type { GitHubAnalysis } from './github';
 import type { PortfolioAnalysis } from './portfolioAnalyzer';
@@ -394,12 +393,6 @@ export async function generateRecommendations(
   },
   details: any
 ): Promise<Recommendation[]> {
-  const apiKey = getOpenAIKey();
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set it in Settings.');
-  }
-
   const prompt = `Based on the following brand analysis, generate personalized recommendations. Return ONLY valid JSON array with this exact structure:
 [
   {
@@ -436,41 +429,34 @@ Analysis Results:
 Generate 5-8 specific, actionable recommendations prioritized by impact and addressing the weaknesses. Focus on high-impact, achievable improvements.`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
+        systemMessage: 'You are an expert career branding advisor. Generate personalized brand recommendations based on analysis data. Return only valid JSON.',
+        prompt: prompt,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || 'Failed to generate recommendations');
+      throw new Error(errorData.error || 'Failed to generate recommendations');
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    const content = data.content;
     
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from AI');
     }
 
     // Extract JSON from response
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format');
     }
 
     const recommendations = JSON.parse(jsonMatch[0]);
@@ -500,11 +486,6 @@ export async function determineBrandArchetype(
   brandScore: BrandScore,
   analyses: any
 ): Promise<BrandArchetype> {
-  const apiKey = getOpenAIKey();
-  
-  if (!apiKey) {
-    // Return default archetype if no API key
-    return {
       name: 'The Professional',
       description: 'A well-rounded professional with a balanced online presence.',
       traits: ['Professional', 'Balanced', 'Versatile'],
@@ -528,22 +509,15 @@ Brand Scores:
 Generate an appropriate brand archetype that reflects this professional's positioning.`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 300,
+        systemMessage: 'You are an expert brand analyst. Determine brand archetypes based on professional profiles. Return only valid JSON.',
+        prompt: prompt,
       }),
     });
 
@@ -552,10 +526,10 @@ Generate an appropriate brand archetype that reflects this professional's positi
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    const content = data.content;
     
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from AI');
     }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);

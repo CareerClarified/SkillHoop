@@ -3,7 +3,6 @@
  * Extracts structured data from resume files using OpenAI
  */
 
-import { getOpenAIKey } from './apiKey';
 
 export interface ResumeData {
   personalInfo: {
@@ -79,12 +78,6 @@ export async function extractTextFromFile(file: File): Promise<string> {
  * Parse resume using OpenAI
  */
 export async function parseResumeWithAI(resumeText: string): Promise<ResumeData> {
-  const apiKey = getOpenAIKey();
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set it in Settings.');
-  }
-
   const prompt = `Extract structured data from this resume text and return valid JSON only. The JSON should include:
 {
   "personalInfo": {
@@ -135,35 +128,28 @@ ${resumeText}
 Return only valid JSON, no additional text:`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 3000
+        systemMessage: 'You are an expert resume parser. Extract structured data from resume text and return only valid JSON.',
+        prompt: prompt,
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Failed to parse resume');
+      throw new Error(errorData.error || 'Failed to parse resume');
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    const content = data.content;
     
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from AI');
     }
 
     // Try to extract JSON from the response

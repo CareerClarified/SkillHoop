@@ -794,7 +794,7 @@ CERTIFICATIONS
             setIndustryKeywords(result);
         } catch (error) {
             console.error('Error getting industry keywords:', error);
-            alert('Failed to get industry keywords. Please check your API key.');
+            alert('Failed to get industry keywords. Please try again.');
         } finally {
             setAiProcessing(false);
         }
@@ -816,7 +816,7 @@ CERTIFICATIONS
             setCompetitorAnalysis(result);
         } catch (error) {
             console.error('Error analyzing competitors:', error);
-            alert('Failed to analyze competitors. Please check your API key.');
+            alert('Failed to analyze competitors. Please try again.');
         } finally {
             setAiProcessing(false);
         }
@@ -838,7 +838,7 @@ CERTIFICATIONS
             setSectionReordering(result);
         } catch (error) {
             console.error('Error recommending section order:', error);
-            alert('Failed to get section recommendations. Please check your API key.');
+            alert('Failed to get section recommendations. Please try again.');
         } finally {
             setAiProcessing(false);
         }
@@ -1060,7 +1060,7 @@ CERTIFICATIONS
             setShowEnhancedTextModal(true);
         } catch (error) {
             console.error('Error enhancing text:', error);
-            alert('Failed to enhance text. Please check your API key.');
+            alert('Failed to enhance text. Please try again.');
         } finally {
             setAiProcessing(false);
         }
@@ -1077,7 +1077,7 @@ CERTIFICATIONS
             setContextSuggestions(result);
         } catch (error) {
             console.error('Error getting context suggestions:', error);
-            alert('Failed to get suggestions. Please check your API key.');
+            alert('Failed to get suggestions. Please try again.');
         } finally {
             setAiProcessing(false);
         }
@@ -1114,7 +1114,7 @@ CERTIFICATIONS
             alert('Text translated successfully!');
         } catch (error) {
             console.error('Error translating text:', error);
-            alert('Failed to translate text. Please check your API key.');
+            alert('Failed to translate text. Please try again.');
         } finally {
             setAiProcessing(false);
         }

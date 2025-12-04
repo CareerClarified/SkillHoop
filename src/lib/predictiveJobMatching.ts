@@ -3,7 +3,6 @@
  * ML-based job recommendation, salary prediction, and success probability scoring
  */
 
-import { getOpenAIKey } from './apiKey';
 
 // --- Types ---
 export interface ResumeProfile {
@@ -92,39 +91,25 @@ export interface JobAlert {
 
 // --- Helper Functions ---
 async function callOpenAI(prompt: string, systemPrompt: string = ''): Promise<string> {
-  const apiKey = getOpenAIKey();
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set it in Settings.');
-  }
-
-  const messages = [];
-  if (systemPrompt) {
-    messages.push({ role: 'system', content: systemPrompt });
-  }
-  messages.push({ role: 'user', content: prompt });
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000
+      systemMessage: systemPrompt,
+      prompt: prompt,
     })
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error?.message || 'Failed to get AI response');
+    throw new Error(errorData.error || 'Failed to get AI response');
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  return data.content || '';
 }
 
 function extractJSON<T>(text: string): T {
