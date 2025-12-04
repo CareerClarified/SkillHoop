@@ -325,8 +325,7 @@ Return only the cover letter text, no additional explanation:`,
     <div className="space-y-8">
       {/* Main Header */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-6">
-        <h3 className="text-3xl font-bold text-slate-800 mb-4">Cover Letter Generator (V2 SECURE)</h3>
-        <p className="text-red-500 font-bold">DEBUG MODE ACTIVE: API KEY REMOVED</p>
+        <h3 className="text-3xl font-bold text-slate-800 mb-4">Cover Letter Generator</h3>
       </div>
 
       {/* Progress Indicator */}
