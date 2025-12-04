@@ -28,7 +28,7 @@ interface AnalysisData {
 }
 
 // --- Main Component ---
-const CoverLetterGenerator = () => {
+const SmartCoverLetter = () => {
   const [step, setStep] = useState<'upload' | 'input' | 'generate' | 'edit'>('upload');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvContent, setCvContent] = useState('');
@@ -849,11 +849,5 @@ Return only the cover letter text, no additional explanation:`,
   );
 };
 
-export default CoverLetterGenerator;
-
-
-
-
-
-
+export default SmartCoverLetter;
 

@@ -11,7 +11,7 @@ const DashboardLayout = lazy(() => import('./components/layout/DashboardLayout')
 const DashboardHome = lazy(() => import('./pages/DashboardHome'));
 const ResumeStudio = lazy(() => import('./pages/ResumeStudio'));
 const ApplicationTailor = lazy(() => import('./pages/ApplicationTailor'));
-const CoverLetterGenerator = lazy(() => import('./pages/CoverLetterGenerator'));
+const SmartCoverLetter = lazy(() => import('./pages/SmartCoverLetter'));
 const JobFinder = lazy(() => import('./pages/JobFinder'));
 const JobTracker = lazy(() => import('./pages/JobTracker'));
 const InterviewPrep = lazy(() => import('./pages/InterviewPrep'));
@@ -60,7 +60,7 @@ function App() {
               {/* Career Hub Routes */}
               <Route path="resume-studio" element={<ResumeStudio />} />
               <Route path="application-tailor" element={<ApplicationTailor />} />
-              <Route path="cover-letter" element={<CoverLetterGenerator />} />
+              <Route path="cover-letter" element={<SmartCoverLetter />} />
               <Route path="job-finder" element={<JobFinder />} />
               <Route path="job-tracker" element={<JobTracker />} />
               <Route path="interview-prep" element={<InterviewPrep />} />
