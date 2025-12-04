@@ -3,7 +3,22 @@
  * Handles LinkedIn OAuth authentication and API calls
  */
 
-import { getLinkedInClientId, getLinkedInAccessToken, setLinkedInAccessToken, removeLinkedInAccessToken } from './apiKey';
+// LinkedIn helper functions (previously from apiKey.ts)
+function getLinkedInClientId(): string | null {
+  return import.meta.env.VITE_LINKEDIN_CLIENT_ID || null;
+}
+
+function getLinkedInAccessToken(): string | null {
+  return localStorage.getItem('linkedin_access_token');
+}
+
+function setLinkedInAccessToken(token: string): void {
+  localStorage.setItem('linkedin_access_token', token);
+}
+
+function removeLinkedInAccessToken(): void {
+  localStorage.removeItem('linkedin_access_token');
+}
 
 // LinkedIn API endpoints
 const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
