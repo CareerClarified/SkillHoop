@@ -60,7 +60,7 @@ function App() {
               {/* Career Hub Routes */}
               <Route path="resume-studio" element={<ResumeStudio />} />
               <Route path="application-tailor" element={<ApplicationTailor />} />
-              <Route path="cover-letter" element={<SmartCoverLetter />} />
+              <Route path="ai-cover-letter" element={<SmartCoverLetter />} />
               <Route path="job-finder" element={<JobFinder />} />
               <Route path="job-tracker" element={<JobTracker />} />
               <Route path="interview-prep" element={<InterviewPrep />} />
