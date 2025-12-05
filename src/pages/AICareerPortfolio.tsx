@@ -33,6 +33,7 @@ import {
   Rocket,
   Star
 } from 'lucide-react';
+import UpgradeModal from '../components/ui/UpgradeModal';
 
 interface Project {
   id: number;
@@ -98,6 +99,7 @@ const AICareerPortfolio = () => {
   });
   const [projects, setProjects] = useState<Project[]>([]);
   const [showAddProject, setShowAddProject] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [newProject, setNewProject] = useState<Omit<Project, 'id'>>({
     title: '',
     description: '',
@@ -1011,6 +1013,9 @@ const AICareerPortfolio = () => {
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import {
   ChevronDown, Star, StarOff, Eye, BookOpen, ExternalLink,
   BarChart3, Activity, Zap, Clock, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
+import UpgradeModal from '../components/ui/UpgradeModal';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   Radar, Legend, ResponsiveContainer, Tooltip,
@@ -254,6 +255,7 @@ export default function SkillRadar() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [skills, setSkills] = useState(skillsData);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Toggle watchlist
   const toggleWatchlist = (skillId: number) => {
@@ -810,6 +812,9 @@ export default function SkillRadar() {
           )}
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }

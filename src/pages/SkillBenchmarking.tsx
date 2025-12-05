@@ -4,6 +4,7 @@ import {
   ArrowUpRight, ArrowDownRight, Briefcase, Award, Zap, Info,
   Filter, RefreshCw, Download, Share2, Sparkles
 } from 'lucide-react';
+import UpgradeModal from '../components/ui/UpgradeModal';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ComposedChart, Line, Area, AreaChart,
@@ -215,6 +216,7 @@ export default function SkillBenchmarking() {
   const [selectedRole, setSelectedRole] = useState(targetRoles[1]); // Default to Tech Lead
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [comparisonView, setComparisonView] = useState<'bar' | 'radar'>('bar');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Calculate metrics
   const overallMatch = Math.round(
@@ -923,6 +925,9 @@ export default function SkillBenchmarking() {
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }

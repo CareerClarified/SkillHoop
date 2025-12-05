@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import UpgradeModal from '../components/ui/UpgradeModal';
 
 // --- Types ---
 interface MatchScores {
@@ -96,6 +97,7 @@ const ApplicationTailor = () => {
   });
   const [optimizations, setOptimizations] = useState<Optimization[]>([]);
   const [isFetchingUrl, setIsFetchingUrl] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Check for pre-loaded job data from Job Finder
   useEffect(() => {
@@ -166,7 +168,15 @@ Return the complete job posting text in a clear, readable format. If you cannot 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch job description');
+        const errorMessage = errorData.error || 'Failed to fetch job description';
+        
+        // Check if this is an upgrade-related error
+        if (response.status === 403 || response.status === 429 || errorMessage.toLowerCase().includes('upgrade')) {
+          setShowUpgradeModal(true);
+          throw new Error(errorMessage);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -179,8 +189,16 @@ Return the complete job posting text in a clear, readable format. If you cannot 
         throw new Error('No content extracted from URL');
       }
     } catch (error) {
-      console.error('Error fetching job description:', error);
-      alert((error as Error).message || 'Failed to fetch job description. Please paste it manually.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch job description';
+      const isUpgradeError = errorMessage.toLowerCase().includes('upgrade') || 
+                            errorMessage.toLowerCase().includes('403') ||
+                            errorMessage.toLowerCase().includes('429');
+      
+      // Only show alert if it's not an upgrade-related error
+      if (!isUpgradeError) {
+        console.error('Error fetching job description:', error);
+        alert(errorMessage || 'Failed to fetch job description. Please paste it manually.');
+      }
     } finally {
       setIsFetchingUrl(false);
     }
@@ -297,7 +315,15 @@ Return your response in the following JSON format:
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to analyze resume');
+        const errorMessage = errorData.error || 'Failed to analyze resume';
+        
+        // Check if this is an upgrade-related error
+        if (response.status === 403 || response.status === 429 || errorMessage.toLowerCase().includes('upgrade')) {
+          setShowUpgradeModal(true);
+          throw new Error(errorMessage);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -336,9 +362,17 @@ Return your response in the following JSON format:
 
       setStep('results');
     } catch (error) {
-      console.error('Error during analysis:', error);
-      setAnalysisError((error as Error).message || 'Failed to analyze resume. Please try again.');
-      setStep('job-input');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze resume. Please try again.';
+      const isUpgradeError = errorMessage.toLowerCase().includes('upgrade') || 
+                            errorMessage.toLowerCase().includes('403') ||
+                            errorMessage.toLowerCase().includes('429');
+      
+      // Only set generic error if it's not an upgrade-related error
+      if (!isUpgradeError) {
+        console.error('Error during analysis:', error);
+        setAnalysisError(errorMessage);
+        setStep('job-input');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -784,6 +818,9 @@ Return your response in the following JSON format:
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 };

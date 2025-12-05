@@ -30,6 +30,7 @@ import {
   type AnswerFeedback
 } from '../utils/interviewPrepStorage';
 import { supabase } from '../lib/supabase';
+import UpgradeModal from '../components/ui/UpgradeModal';
 
 const InterviewPrep = () => {
   // Tab state
@@ -86,6 +87,7 @@ const InterviewPrep = () => {
   const [questionPriorities, setQuestionPriorities] = useState<Record<number, 'Critical' | 'High' | 'Medium' | 'Low'>>({});
   const [showAnxietyAssessment, setShowAnxietyAssessment] = useState(false);
   const [anxietyAssessmentAnswers, setAnxietyAssessmentAnswers] = useState<Record<string, number>>({});
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Company research state
   const [showCompanyResearch, setShowCompanyResearch] = useState(false);
@@ -468,7 +470,15 @@ Format your response clearly with sections. Return only the guidance and sample 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate sample answer');
+        const errorMessage = errorData.error || 'Failed to generate sample answer';
+        
+        // Check if this is an upgrade-related error
+        if (response.status === 403 || response.status === 429 || errorMessage.toLowerCase().includes('upgrade')) {
+          setShowUpgradeModal(true);
+          throw new Error(errorMessage);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -483,7 +493,16 @@ When answering this question for a ${jobTitle} position at ${company}, you shoul
 
 Remember to tailor your response to highlight skills and experiences relevant to this specific role.`;
     } catch (error) {
-      console.error('Error generating sample answer:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate sample answer';
+      const isUpgradeError = errorMessage.toLowerCase().includes('upgrade') || 
+                            errorMessage.toLowerCase().includes('403') ||
+                            errorMessage.toLowerCase().includes('429');
+      
+      // Only log and return fallback if it's not an upgrade-related error
+      if (!isUpgradeError) {
+        console.error('Error generating sample answer:', error);
+      }
+      
       // Return fallback answer
       return `This is a sample answer for: "${question}"
 
@@ -536,7 +555,15 @@ Return ONLY valid JSON, no additional text.`,
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch company research');
+        const errorMessage = errorData.error || 'Failed to fetch company research';
+        
+        // Check if this is an upgrade-related error
+        if (response.status === 403 || response.status === 429 || errorMessage.toLowerCase().includes('upgrade')) {
+          setShowUpgradeModal(true);
+          throw new Error(errorMessage);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -571,9 +598,16 @@ Return ONLY valid JSON, no additional text.`,
         throw new Error('Invalid response format');
       }
     } catch (error) {
-      console.error('Error fetching company research:', error);
-      // Fallback to default research
-      setCompanyResearch({
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch company research';
+      const isUpgradeError = errorMessage.toLowerCase().includes('upgrade') || 
+                            errorMessage.toLowerCase().includes('403') ||
+                            errorMessage.toLowerCase().includes('429');
+      
+      // Only log and fallback if it's not an upgrade-related error
+      if (!isUpgradeError) {
+        console.error('Error fetching company research:', error);
+        // Fallback to default research
+        setCompanyResearch({
         culture: `${company} is known for its innovative culture and commitment to employee growth. They emphasize collaboration, creativity, and continuous learning.`,
         values: [
           'Innovation and creativity',
@@ -590,6 +624,10 @@ Return ONLY valid JSON, no additional text.`,
           'Highlight relevant experience with similar companies'
         ]
       });
+      } else {
+        // For upgrade errors, set a minimal fallback or leave null
+        setCompanyResearch(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -1900,6 +1938,9 @@ Best regards,
           </button>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 };
