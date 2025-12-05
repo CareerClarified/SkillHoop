@@ -752,3 +752,248 @@ aside.collapsed .dropdown-container {
 .checkmark-icon-animated {
   animation: fade-in 0.8s ease-out 1.7s forwards;
 }
+
+/* --- Legacy Landing Page Styles --- */
+
+/* Scroll animation for trusted by section */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+/* Tab button active state */
+.tab-btn.active {
+  background-color: #f1f4ff;
+  color: #260F14;
+  font-weight: 500;
+}
+
+/* Scroll section margin for sticky header */
+.scroll-section {
+  scroll-margin-top: 120px;
+}
+
+/* Sun animation styles */
+.section-banner-sun {
+  height: 300px;
+  width: 300px;
+  position: relative;
+  transition: left 0.3s linear;
+  background-color: #E6E6FA;
+  border-radius: 50%;
+  animation: shadowPulse 5s ease-in-out infinite;
+  box-shadow:
+    0px 0px 40px 20px #7891D5,
+    -5px 0px 10px 1px #E8F0FF inset,
+    15px 2px 40px 20px #4D69B4c5 inset,
+    -24px -2px 50px 25px #7891D5c2 inset,
+    150px 0px 80px 35px #2B448Caa inset;
+}
+
+/* Curved corner star styles */
+.curved-corner-star {
+  display: flex;
+  position: relative;
+}
+
+#curved-corner-bottomleft,
+#curved-corner-bottomright,
+#curved-corner-topleft,
+#curved-corner-topright {
+  width: 4px;
+  height: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+#curved-corner-bottomleft:before,
+#curved-corner-bottomright:before,
+#curved-corner-topleft:before,
+#curved-corner-topright:before {
+  content: "";
+  display: block;
+  width: 200%;
+  height: 200%;
+  position: absolute;
+  border-radius: 50%;
+}
+
+#curved-corner-bottomleft:before {
+  bottom: 0;
+  left: 0;
+  box-shadow: -5px 5px 0 0 #E8F0FF;
+}
+
+#curved-corner-bottomright:before {
+  bottom: 0;
+  right: 0;
+  box-shadow: 5px 5px 0 0 #E8F0FF;
+}
+
+#curved-corner-topleft:before {
+  top: 0;
+  left: 0;
+  box-shadow: -5px -5px 0 0 #E8F0FF;
+}
+
+#curved-corner-topright:before {
+  top: 0;
+  right: 0;
+  box-shadow: 5px -5px 0 0 #E8F0FF;
+}
+
+/* Star twinkling animation */
+@keyframes twinkling {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Shadow pulse animation for sun */
+@keyframes shadowPulse {
+  0%, 100% {
+    box-shadow:
+      0px 0px 40px 20px #7891D5,
+      -5px 0px 10px 1px #E8F0FF inset,
+      15px 2px 40px 20px #4D69B4c5 inset,
+      -24px -2px 50px 25px #7891D5c2 inset,
+      150px 0px 80px 35px #2B448Caa inset;
+  }
+  50% {
+    box-shadow:
+      0px 0px 60px 30px #AEBFE3,
+      -5px 0px 20px 5px #E8F0FF inset,
+      15px 2px 60px 30px #4D69B4c5 inset,
+      -24px -2px 70px 35px #7891D5c2 inset,
+      150px 0px 100px 45px #2B448Caa inset;
+  }
+}
+
+/* Star positions */
+#star-1 {
+  position: absolute;
+  left: -20px;
+  animation: twinkling 3s infinite;
+}
+
+#star-2 {
+  position: absolute;
+  left: -40px;
+  top: 30px;
+  animation: twinkling 2s infinite;
+}
+
+#star-3 {
+  position: absolute;
+  left: 350px;
+  top: 90px;
+  animation: twinkling 4s infinite;
+}
+
+#star-4 {
+  position: absolute;
+  left: 200px;
+  top: 290px;
+  animation: twinkling 3s infinite;
+}
+
+#star-5 {
+  position: absolute;
+  left: 50px;
+  top: 270px;
+  animation: twinkling 1.5s infinite;
+}
+
+#star-6 {
+  position: absolute;
+  left: 250px;
+  top: -50px;
+  animation: twinkling 4s infinite;
+}
+
+#star-7 {
+  position: absolute;
+  left: 290px;
+  top: 60px;
+  animation: twinkling 2s infinite;
+}
+
+/* Hero button styles */
+.hero-button:hover {
+  box-shadow: 10px 10px 22px #273049, -10px -10px 22px #6b84c5 !important;
+}
+
+.hero-button:active {
+  background: #4a5a86 !important;
+  box-shadow: inset 7px 7px 15px #273049, inset -7px -7px 15px #6b84c5 !important;
+}
+
+/* Header container styles */
+#header-container {
+  background-color: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+#header-container.header-scrolled {
+  background-color: #ffffff;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: none;
+}
+
+/* Button styles */
+.button-light {
+  background-color: #f1f4ff;
+  color: #0f172a; /* slate-900 */
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.button-light:hover {
+  background-color: #e0e7ff;
+}
+
+.button-gradient-dark {
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.button-gradient-dark:hover {
+  background-color: #4338ca;
+  box-shadow: 0 4px 15px 0 rgba(79, 70, 229, 0.4);
+}
+
+/* Glass header effect */
+.glass-header {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.glass-effect {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: none;
+}
