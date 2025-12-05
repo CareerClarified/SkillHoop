@@ -1,7 +1,9 @@
 import LandingNavbar from '../components/landing/LandingNavbar';
 import LandingHero from '../components/landing/LandingHero';
+import LandingChallenges from '../components/landing/LandingChallenges';
 import ScrollSyncedCarousel from '../components/landing/ScrollSyncedCarousel';
 import LandingFeatures from '../components/landing/LandingFeatures';
+import LandingCTA from '../components/landing/LandingCTA';
 import LandingFooter from '../components/landing/LandingFooter';
 
 export default function LandingPage() {
@@ -94,6 +96,8 @@ export default function LandingPage() {
       <main className="flex-grow">
         <LandingHero />
 
+        <LandingChallenges />
+
         {/* Render the 3 Carousels with their specific IDs and Data */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <ScrollSyncedCarousel useCases={useCases} id="carousel1" />
@@ -112,6 +116,8 @@ export default function LandingPage() {
         </div>
 
         <LandingFeatures />
+
+        <LandingCTA />
       </main>
 
       <LandingFooter />

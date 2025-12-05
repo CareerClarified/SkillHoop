@@ -4,24 +4,6 @@ import { Quote } from 'lucide-react';
 export default function LandingFeatures() {
   return (
     <>
-      {/* Main Headline Section */}
-      <div className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-              Challenges Employees Face
-            </p>
-            <h1 className="mt-4 text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
-              If You're Qualified But Still Struggling, You're Not Alone.
-            </h1>
-            <h2 className="mt-6 text-lg md:text-xl text-gray-600">
-              75% of qualified professionals are stuck in the same broken system. Here's why traditional
-              approaches fail.
-            </h2>
-          </div>
-        </div>
-      </div>
-
       {/* Stats Section */}
       <div className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
