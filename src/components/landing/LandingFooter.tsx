@@ -12,12 +12,7 @@ export default function LandingFooter() {
       <div className="absolute inset-0 bg-white/40 z-0"></div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className="bg-white/80 backdrop-blur-md p-8 sm:p-10 rounded-2xl shadow-xl"
-          style={{
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-          }}
-        >
+        <div className="glass-effect p-8 sm:p-10 rounded-2xl">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
             <div className="max-w-3xl mb-8 md:mb-0">
@@ -35,9 +30,12 @@ export default function LandingFooter() {
               >
                 Subscribe
               </Link>
-              <button className="border border-indigo-600 text-indigo-600 px-6 py-3 rounded-md hover:bg-indigo-50 transition-colors duration-300">
+              <Link
+                to="#"
+                className="border border-indigo-600 text-indigo-600 px-6 py-3 rounded-md hover:bg-indigo-50 transition-colors duration-300"
+              >
                 Contact
-              </button>
+              </Link>
             </div>
           </div>
 
