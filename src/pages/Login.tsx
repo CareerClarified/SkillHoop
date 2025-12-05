@@ -90,9 +90,18 @@ function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // TODO: Implement Google login
-    alert('Google login coming soon');
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
   };
 
   return (
