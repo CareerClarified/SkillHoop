@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import UpgradeModal from '../components/ui/UpgradeModal';
+import FeatureGate from '../components/auth/FeatureGate';
 
 // --- Types ---
 interface MatchScores {
@@ -399,7 +400,8 @@ Return your response in the following JSON format:
   };
 
   return (
-    <div className="space-y-8">
+    <FeatureGate requiredTier="pro">
+      <div className="space-y-8">
       {/* Progress Indicator */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
@@ -821,7 +823,8 @@ Return your response in the following JSON format:
 
       {/* Upgrade Modal */}
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+      </div>
+    </FeatureGate>
   );
 };
 

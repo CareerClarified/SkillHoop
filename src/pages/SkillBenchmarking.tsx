@@ -5,6 +5,7 @@ import {
   Filter, RefreshCw, Download, Share2, Sparkles
 } from 'lucide-react';
 import UpgradeModal from '../components/ui/UpgradeModal';
+import FeatureGate from '../components/auth/FeatureGate';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ComposedChart, Line, Area, AreaChart,
@@ -233,7 +234,8 @@ export default function SkillBenchmarking() {
   );
 
   return (
-    <div className="space-y-8">
+    <FeatureGate requiredTier="ultimate">
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -928,7 +930,8 @@ export default function SkillBenchmarking() {
 
       {/* Upgrade Modal */}
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+      </div>
+    </FeatureGate>
   );
 }
 

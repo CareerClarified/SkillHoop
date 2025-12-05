@@ -5,6 +5,7 @@ import {
   BarChart3, Activity, Zap, Clock, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import UpgradeModal from '../components/ui/UpgradeModal';
+import FeatureGate from '../components/auth/FeatureGate';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   Radar, Legend, ResponsiveContainer, Tooltip,
@@ -302,7 +303,8 @@ export default function SkillRadar() {
   };
 
   return (
-    <div className="space-y-8">
+    <FeatureGate requiredTier="ultimate">
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -815,7 +817,8 @@ export default function SkillRadar() {
 
       {/* Upgrade Modal */}
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+      </div>
+    </FeatureGate>
   );
 }
 

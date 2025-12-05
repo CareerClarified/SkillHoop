@@ -31,6 +31,7 @@ import {
 } from '../utils/interviewPrepStorage';
 import { supabase } from '../lib/supabase';
 import UpgradeModal from '../components/ui/UpgradeModal';
+import FeatureGate from '../components/auth/FeatureGate';
 
 const InterviewPrep = () => {
   // Tab state
@@ -639,7 +640,8 @@ Return ONLY valid JSON, no additional text.`,
   };
 
   return (
-    <div className="space-y-8">
+    <FeatureGate requiredTier="pro">
+      <div className="space-y-8">
       {/* Navigation Tabs */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 rounded-lg p-1">
         <div className="flex flex-wrap gap-1">
@@ -1941,7 +1943,8 @@ Best regards,
 
       {/* Upgrade Modal */}
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+      </div>
+    </FeatureGate>
   );
 };
 

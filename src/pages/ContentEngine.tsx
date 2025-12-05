@@ -46,6 +46,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import FeatureGate from '../components/auth/FeatureGate';
 import {
   LineChart,
   Line,
@@ -1712,50 +1713,52 @@ Return the thread with each tweet numbered (1/, 2/, etc.). Return only the threa
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50/50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl flex items-center justify-center shadow-lg">
-              <PenTool className="w-7 h-7 text-white" />
+    <FeatureGate requiredTier="ultimate">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50/50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl flex items-center justify-center shadow-lg">
+                <PenTool className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Content Engine</h1>
+                <p className="text-gray-600">Generate professional content to build your brand</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Content Engine</h1>
-              <p className="text-gray-600">Generate professional content to build your brand</p>
+
+            {/* Tabs */}
+            <div className="flex flex-wrap gap-2 bg-white/50 backdrop-blur-xl border border-white/30 rounded-2xl p-2 shadow-lg">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-violet-600 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-white/60 hover:text-gray-900'
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-2 bg-white/50 backdrop-blur-xl border border-white/30 rounded-2xl p-2 shadow-lg">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-violet-600 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-white/60 hover:text-gray-900'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Tab Content */}
+          {activeTab === 'dashboard' && renderDashboard()}
+          {activeTab === 'generator' && renderGenerator()}
+          {activeTab === 'calendar' && renderCalendar()}
+          {activeTab === 'analytics' && renderAnalytics()}
+          {activeTab === 'templates' && renderTemplates()}
         </div>
 
-        {/* Tab Content */}
-        {activeTab === 'dashboard' && renderDashboard()}
-        {activeTab === 'generator' && renderGenerator()}
-        {activeTab === 'calendar' && renderCalendar()}
-        {activeTab === 'analytics' && renderAnalytics()}
-        {activeTab === 'templates' && renderTemplates()}
+        {/* Upgrade Modal */}
+        <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
       </div>
-
-      {/* Upgrade Modal */}
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+    </FeatureGate>
   );
 };
 

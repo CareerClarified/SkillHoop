@@ -34,6 +34,7 @@ import {
   Star
 } from 'lucide-react';
 import UpgradeModal from '../components/ui/UpgradeModal';
+import FeatureGate from '../components/auth/FeatureGate';
 
 interface Project {
   id: number;
@@ -336,7 +337,8 @@ const AICareerPortfolio = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <FeatureGate requiredTier="ultimate">
+      <div className="space-y-8">
       {/* Progress Indicator */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
@@ -1016,7 +1018,8 @@ const AICareerPortfolio = () => {
 
       {/* Upgrade Modal */}
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
-    </div>
+      </div>
+    </FeatureGate>
   );
 };
 
