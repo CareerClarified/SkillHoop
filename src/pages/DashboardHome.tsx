@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Lock, FileText, Briefcase, Target, Zap, CheckCircle2, Sparkles, 
   ArrowRight, TrendingUp, Activity, BookOpen, MessageSquare, Brain,
-  FileCheck, Calendar
+  FileCheck, Calendar, BarChart3, Rocket, Search, Coffee, RefreshCw,
+  Globe, Award
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import StatsOverview from '../components/dashboard/StatsOverview';
@@ -103,6 +104,8 @@ export default function DashboardHome() {
   const [jobsThisWeek, setJobsThisWeek] = useState<number>(0);
   const [dailyLimit, setDailyLimit] = useState<number>(0);
   const [usedToday, setUsedToday] = useState<number>(0);
+  const [lastApplicationDate, setLastApplicationDate] = useState<string | null>(null);
+  const [coverLetterCount, setCoverLetterCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const quickActionsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -176,6 +179,19 @@ export default function DashboardHome() {
           setJobsThisWeek(jobsThisWeekResult || 0);
         }
 
+        // Fetch last application date (for Level 4 dynamic banner)
+        const { data: lastApplication, error: lastAppError } = await supabase
+          .from('job_applications')
+          .select('created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!lastAppError && lastApplication?.created_at) {
+          setLastApplicationDate(lastApplication.created_at);
+        }
+
         // Fetch latest brand score
         const { data: brandAudit, error: brandError } = await supabase
           .from('brand_audits')
@@ -209,6 +225,17 @@ export default function DashboardHome() {
           const limit = profile?.daily_limit ?? 0;
           setCreditsLeft(Math.max(0, limit - used));
         }
+
+        // Fetch cover letter count from ai_usage_logs
+        const { count: coverLetterCountResult, error: coverLetterError } = await supabase
+          .from('ai_usage_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('feature_name', 'cover_letter');
+
+        if (!coverLetterError) {
+          setCoverLetterCount(coverLetterCountResult || 0);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -227,6 +254,218 @@ export default function DashboardHome() {
     return 'Good evening';
   };
 
+  // Calculate days since last application
+  const getDaysSinceLastApplication = (): number | null => {
+    if (!lastApplicationDate) return null;
+    const lastApp = new Date(lastApplicationDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    lastApp.setHours(0, 0, 0, 0);
+    const diffTime = today.getTime() - lastApp.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Get daily banner for Level 4 (End Game) state
+  // Smart logic with overrides for urgent tasks, then 14-day rotating cycle
+  const getDailyBanner = () => {
+    const daysSinceLastApp = getDaysSinceLastApplication();
+    
+    // Smart Overrides - Check for urgent tasks first
+    // If brandScore is missing, prioritize Brand Audit
+    if (brandScore === null) {
+      return {
+        title: 'Brand Audit',
+        message: 'How does your LinkedIn look? Run a fresh audit.',
+        buttonText: 'Run Brand Audit',
+        link: '/dashboard/brand-audit',
+        icon: <Target className="w-8 h-8" />,
+        gradient: 'from-violet-600 to-purple-600'
+      };
+    }
+    
+    // If no resume exists, prioritize Resume Studio
+    if (resumeCount === 0) {
+      return {
+        title: 'Resume Studio',
+        message: 'Keep your resume fresh. Update your Master Resume today.',
+        buttonText: 'Create Resume',
+        link: '/dashboard/resume-studio',
+        icon: <FileText className="w-8 h-8" />,
+        gradient: 'from-indigo-600 to-blue-600'
+      };
+    }
+    
+    // If no job applications tracked, prioritize Job Finder
+    if (jobCount === 0) {
+      return {
+        title: 'Job Finder',
+        message: 'Found your dream role yet? Search 50+ new listings.',
+        buttonText: 'Search Jobs',
+        link: '/dashboard/job-finder',
+        icon: <Search className="w-8 h-8" />,
+        gradient: 'from-green-600 to-emerald-600'
+      };
+    }
+    
+    // 14-Day Rotating Cycle - Fallback if no urgent tasks
+    const dayOfMonth = new Date().getDate();
+    const cycleDay = dayOfMonth % 14;
+    
+    switch (cycleDay) {
+      case 0:
+        return {
+          title: 'Resume Studio',
+          message: 'Keep your resume fresh. Update your Master Resume today.',
+          buttonText: 'Update Resume',
+          link: '/dashboard/resume-studio',
+          icon: <FileText className="w-8 h-8" />,
+          gradient: 'from-indigo-600 to-blue-600'
+        };
+      
+      case 1:
+        return {
+          title: 'Job Finder',
+          message: 'Found your dream role yet? Search 50+ new listings.',
+          buttonText: 'Search Jobs',
+          link: '/dashboard/job-finder',
+          icon: <Search className="w-8 h-8" />,
+          gradient: 'from-green-600 to-emerald-600'
+        };
+      
+      case 2:
+        return {
+          title: 'Application Tailor',
+          message: 'Don\'t send generic resumes. Tailor one for a specific job.',
+          buttonText: 'Tailor Resume',
+          link: '/dashboard/application-tailor',
+          icon: <FileCheck className="w-8 h-8" />,
+          gradient: 'from-teal-600 to-cyan-600'
+        };
+      
+      case 3:
+        return {
+          title: 'Brand Audit',
+          message: 'How does your LinkedIn look? Run a fresh audit.',
+          buttonText: 'Run Brand Audit',
+          link: '/dashboard/brand-audit',
+          icon: <Target className="w-8 h-8" />,
+          gradient: 'from-violet-600 to-purple-600'
+        };
+      
+      case 4:
+        return {
+          title: 'Interview Prep',
+          message: 'Prepare for the big day. Start a mock interview.',
+          buttonText: 'Start Interview Prep',
+          link: '/dashboard/interview-prep',
+          icon: <Brain className="w-8 h-8" />,
+          gradient: 'from-purple-600 to-pink-600'
+        };
+      
+      case 5:
+        return {
+          title: 'Skill Radar',
+          message: 'Market demands are shifting. Check your skill alignment.',
+          buttonText: 'View Skill Radar',
+          link: '/dashboard/skill-radar',
+          icon: <TrendingUp className="w-8 h-8" />,
+          gradient: 'from-orange-600 to-amber-600'
+        };
+      
+      case 6:
+        return {
+          title: 'Cover Letter',
+          message: 'Need a cover letter fast? Generate one in seconds.',
+          buttonText: 'Create Cover Letter',
+          link: '/dashboard/ai-cover-letter',
+          icon: <MessageSquare className="w-8 h-8" />,
+          gradient: 'from-teal-600 to-cyan-600'
+        };
+      
+      case 7:
+        return {
+          title: 'Content Engine',
+          message: 'Build authority. Generate a viral LinkedIn post.',
+          buttonText: 'Generate Content',
+          link: '/dashboard/content-engine',
+          icon: <BarChart3 className="w-8 h-8" />,
+          gradient: 'from-indigo-600 to-purple-600'
+        };
+      
+      case 8:
+        return {
+          title: 'Learning Sprints',
+          message: 'Ready for a sprint? Start a 2-week learning mission.',
+          buttonText: 'Start Sprint',
+          link: '/dashboard/sprints',
+          icon: <Rocket className="w-8 h-8" />,
+          gradient: 'from-orange-600 to-amber-600'
+        };
+      
+      case 9:
+        return {
+          title: 'Job Tracker',
+          message: 'Keep your pipeline organized. Update your application status.',
+          buttonText: 'View Tracker',
+          link: '/dashboard/job-tracker',
+          icon: <Briefcase className="w-8 h-8" />,
+          gradient: 'from-green-600 to-emerald-600'
+        };
+      
+      case 10:
+        return {
+          title: 'AI Portfolio',
+          message: 'Showcase your work. Update your AI Portfolio website.',
+          buttonText: 'Update Portfolio',
+          link: '/dashboard/portfolio',
+          icon: <Globe className="w-8 h-8" />,
+          gradient: 'from-violet-600 to-purple-600'
+        };
+      
+      case 11:
+        return {
+          title: 'Skill Benchmarking',
+          message: 'How do you compare to peers? Check your benchmark score.',
+          buttonText: 'View Benchmark',
+          link: '/dashboard/benchmarking',
+          icon: <BarChart3 className="w-8 h-8" />,
+          gradient: 'from-purple-600 to-pink-600'
+        };
+      
+      case 12:
+        return {
+          title: 'Event Scout',
+          message: 'Network with pros. Find career events near you.',
+          buttonText: 'Find Events',
+          link: '/dashboard/event-scout',
+          icon: <Calendar className="w-8 h-8" />,
+          gradient: 'from-blue-600 to-indigo-600'
+        };
+      
+      case 13:
+        return {
+          title: 'Certifications',
+          message: 'Plan your next cert. View your certification roadmap.',
+          buttonText: 'View Certifications',
+          link: '/dashboard/certifications',
+          icon: <Award className="w-8 h-8" />,
+          gradient: 'from-amber-600 to-orange-600'
+        };
+      
+      default:
+        // Fallback: Resume Studio
+        return {
+          title: 'Resume Studio',
+          message: 'Keep your resume fresh. Update your Master Resume today.',
+          buttonText: 'Update Resume',
+          link: '/dashboard/resume-studio',
+          icon: <FileText className="w-8 h-8" />,
+          gradient: 'from-indigo-600 to-blue-600'
+        };
+    }
+  };
+
   // Determine focus widget content
   const getFocusWidget = () => {
     if (resumeCount === 0) {
@@ -234,33 +473,272 @@ export default function DashboardHome() {
         title: 'Build your Master Resume',
         description: 'Create your first professional resume to get started',
         link: '/dashboard/resume-studio',
-        icon: <FileText className="w-8 h-8" />
+        icon: <FileText className="w-8 h-8" />,
+        gradient: 'from-indigo-600 to-purple-600'
       };
     } else if (brandScore === null) {
       return {
         title: 'Audit your Personal Brand',
         description: 'Analyze your brand across LinkedIn, GitHub, and portfolio',
         link: '/dashboard/brand-audit',
-        icon: <Target className="w-8 h-8" />
+        icon: <Target className="w-8 h-8" />,
+        gradient: 'from-indigo-600 to-purple-600'
       };
     } else if (jobCount === 0) {
       return {
         title: 'Track your first Job Application',
         description: 'Start tracking applications and get smart insights',
         link: '/dashboard/job-finder',
-        icon: <Briefcase className="w-8 h-8" />
+        icon: <Briefcase className="w-8 h-8" />,
+        gradient: 'from-indigo-600 to-purple-600'
       };
     } else {
+      // Level 4 (End Game) - Use dynamic daily banner
+      const dailyBanner = getDailyBanner();
       return {
-        title: 'Explore Upskilling Sprints',
-        description: 'Level up your skills with personalized learning paths',
-        link: '/dashboard',
-        icon: <TrendingUp className="w-8 h-8" />
+        title: dailyBanner.title,
+        description: dailyBanner.message,
+        link: dailyBanner.link,
+        icon: dailyBanner.icon,
+        gradient: dailyBanner.gradient,
+        buttonText: dailyBanner.buttonText
       };
     }
   };
 
+  // Complete Feature Pool - All possible suggestions
+  interface FeatureSuggestion {
+    title: string;
+    description: string;
+    link: string;
+    icon: React.ReactNode;
+    isUrgent?: (state: {
+      resumeCount: number;
+      jobCount: number;
+      brandScore: number | null;
+      coverLetterCount: number;
+      atsScore: number | null;
+      jobsThisWeek: number;
+      daysSinceLastApp: number | null;
+    }) => boolean;
+  }
+
+  const COMPLETE_FEATURE_POOL: FeatureSuggestion[] = [
+    // Career Hub
+    {
+      title: 'Resume Studio',
+      description: 'Create and manage professional resumes tailored to your target roles',
+      link: '/dashboard/resume-studio',
+      icon: <FileText className="w-6 h-6" />,
+      isUrgent: (state) => state.resumeCount === 0
+    },
+    {
+      title: 'Application Tailor',
+      description: 'Tailor your resume and application materials for specific job postings',
+      link: '/dashboard/application-tailor',
+      icon: <FileCheck className="w-6 h-6" />,
+      isUrgent: (state) => state.resumeCount > 0 && state.jobCount === 0
+    },
+    {
+      title: 'Cover Letter',
+      description: 'Generate personalized cover letters that complement your resume',
+      link: '/dashboard/ai-cover-letter',
+      icon: <MessageSquare className="w-6 h-6" />,
+      isUrgent: (state) => state.resumeCount > 0 && state.coverLetterCount === 0 && state.jobCount > 0
+    },
+    {
+      title: 'Job Finder',
+      description: 'Discover opportunities that match your skills and career goals',
+      link: '/dashboard/job-finder',
+      icon: <Search className="w-6 h-6" />,
+      isUrgent: (state) => state.jobCount === 0
+    },
+    {
+      title: 'Job Tracker',
+      description: 'Organize and track your applications with smart insights',
+      link: '/dashboard/job-tracker',
+      icon: <Briefcase className="w-6 h-6" />,
+      isUrgent: (state) => state.jobCount > 0 && (state.daysSinceLastApp === null || (state.daysSinceLastApp !== null && state.daysSinceLastApp > 7))
+    },
+    {
+      title: 'Interview Prep',
+      description: 'Prepare for interviews with AI-powered mock sessions and feedback',
+      link: '/dashboard/interview-prep',
+      icon: <Brain className="w-6 h-6" />,
+      isUrgent: (state) => state.jobCount > 5
+    },
+    {
+      title: 'Work History',
+      description: 'Manage and optimize your professional work history and experience',
+      link: '/dashboard/work-history',
+      icon: <Calendar className="w-6 h-6" />
+    },
+    
+    // Brand Building
+    {
+      title: 'Brand Audit',
+      description: 'Analyze your personal brand across LinkedIn, GitHub, and portfolio',
+      link: '/dashboard/brand-audit',
+      icon: <Target className="w-6 h-6" />,
+      isUrgent: (state) => state.brandScore === null
+    },
+    {
+      title: 'Content Engine',
+      description: 'Generate professional content to build authority and visibility',
+      link: '/dashboard/content-engine',
+      icon: <BarChart3 className="w-6 h-6" />,
+      isUrgent: (state) => state.brandScore !== null && state.brandScore < 60
+    },
+    {
+      title: 'AI Portfolio',
+      description: 'Create a stunning portfolio website to showcase your work',
+      link: '/dashboard/portfolio',
+      icon: <Globe className="w-6 h-6" />,
+      isUrgent: (state) => state.brandScore !== null && state.brandScore > 70
+    },
+    {
+      title: 'Event Scout',
+      description: 'Find networking events and career opportunities in your area',
+      link: '/dashboard/event-scout',
+      icon: <Calendar className="w-6 h-6" />
+    },
+    
+    // Upskilling
+    {
+      title: 'Upskilling Dashboard',
+      description: 'Track your learning progress and skill development journey',
+      link: '/dashboard/upskilling',
+      icon: <Activity className="w-6 h-6" />
+    },
+    {
+      title: 'Skill Radar',
+      description: 'Discover trending skills in your industry and see how you compare',
+      link: '/dashboard/skill-radar',
+      icon: <TrendingUp className="w-6 h-6" />
+    },
+    {
+      title: 'Learning Path',
+      description: 'Build a personalized learning roadmap to reach your career goals',
+      link: '/dashboard/learning-path',
+      icon: <BookOpen className="w-6 h-6" />
+    },
+    {
+      title: 'Learning Sprints',
+      description: 'Complete focused 2-week learning missions to level up fast',
+      link: '/dashboard/sprints',
+      icon: <Rocket className="w-6 h-6" />
+    },
+    {
+      title: 'Certifications',
+      description: 'Plan and track industry certifications to boost your credibility',
+      link: '/dashboard/certifications',
+      icon: <Award className="w-6 h-6" />
+    },
+    {
+      title: 'Skill Benchmarking',
+      description: 'Compare your skills against industry standards and peers',
+      link: '/dashboard/benchmarking',
+      icon: <BarChart3 className="w-6 h-6" />
+    }
+  ];
+
+  // Get daily suggestions - Teaser Machine Algorithm
+  interface DailySuggestion {
+    title: string;
+    description: string;
+    link: string;
+    icon: React.ReactNode;
+    actionText: string;
+  }
+
+  // Shuffle array utility
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Get day-based seed for consistent randomization
+  const getDaySeed = (): number => {
+    const today = new Date();
+    return today.getFullYear() * 10000 + today.getMonth() * 100 + today.getDate();
+  };
+
+  const getDailySuggestions = (): DailySuggestion[] => {
+    const state = {
+      resumeCount,
+      jobCount,
+      brandScore,
+      coverLetterCount,
+      atsScore,
+      jobsThisWeek,
+      daysSinceLastApp: getDaysSinceLastApplication()
+    };
+
+    // Get day seed once for consistent randomization
+    const seed = getDaySeed();
+
+    // Step 1: Identify Urgent items
+    const urgentItems: FeatureSuggestion[] = [];
+    COMPLETE_FEATURE_POOL.forEach(feature => {
+      if (feature.isUrgent && feature.isUrgent(state)) {
+        urgentItems.push(feature);
+      }
+    });
+
+    // Step 2: Identify Discovery items (remaining features)
+    const discoveryItems = COMPLETE_FEATURE_POOL.filter(feature => {
+      // Exclude urgent items
+      if (urgentItems.some(urgent => urgent.link === feature.link)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Step 3: Pick 3 items
+    const selected: FeatureSuggestion[] = [];
+    
+    // Take 1 urgent item if available
+    if (urgentItems.length > 0) {
+      // Use day seed for consistent selection
+      const urgentIndex = seed % urgentItems.length;
+      selected.push(urgentItems[urgentIndex]);
+    }
+
+    // Fill remaining spots with discovery items
+    // Use day-based rotation for consistency
+    const shuffledDiscovery = shuffleArray(discoveryItems);
+    
+    // Rotate based on day to ensure variety
+    const rotationStart = seed % shuffledDiscovery.length;
+    const rotatedDiscovery = [
+      ...shuffledDiscovery.slice(rotationStart),
+      ...shuffledDiscovery.slice(0, rotationStart)
+    ];
+
+    const neededCount = 3 - selected.length;
+    for (let i = 0; i < neededCount && i < rotatedDiscovery.length; i++) {
+      selected.push(rotatedDiscovery[i]);
+    }
+
+    // Step 4: Shuffle the final 3 items (so urgent isn't always first)
+    const actionTexts = ['Start', 'View', 'Explore'];
+    const finalSuggestions = shuffleArray(selected).slice(0, 3).map((feature, index) => ({
+      title: feature.title,
+      description: feature.description,
+      link: feature.link,
+      icon: feature.icon,
+      actionText: actionTexts[(seed + index) % actionTexts.length] || 'Start'
+    }));
+
+    return finalSuggestions;
+  };
+
   const focusWidget = getFocusWidget();
+  const dailySuggestions = getDailySuggestions();
   const creditsPercentage = dailyLimit > 0 ? (usedToday / dailyLimit) * 100 : 0;
 
   if (isLoading) {
@@ -275,7 +753,7 @@ export default function DashboardHome() {
     <div className="space-y-6">
       {/* Hero Section - Focus Widget */}
       <div 
-        className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl cursor-pointer hover:shadow-2xl transition-all duration-300"
+        className={`bg-gradient-to-r ${focusWidget.gradient || 'from-indigo-600 to-purple-600'} rounded-2xl p-8 text-white shadow-xl cursor-pointer hover:shadow-2xl transition-all duration-300`}
         onClick={() => navigate(focusWidget.link)}
       >
         <div className="flex items-start justify-between">
@@ -286,9 +764,9 @@ export default function DashboardHome() {
                 {focusWidget.icon}
                 <h2 className="text-2xl font-semibold">{focusWidget.title}</h2>
               </div>
-              <p className="text-indigo-100 text-lg mb-4">{focusWidget.description}</p>
-              <button className="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all">
-                Get Started
+              <p className="text-white/90 text-lg mb-4">{focusWidget.description}</p>
+              <button className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-700 rounded-xl font-semibold hover:bg-white/90 transition-all">
+                {focusWidget.buttonText || 'Get Started'}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -376,8 +854,43 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {/* Mystery Missions - Teaser Machine */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Mystery Missions</h2>
+            <p className="text-sm text-slate-600 mt-1">Discover what's waiting for you today</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {dailySuggestions.map((suggestion, index) => {
+            return (
+              <div key={index} className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                {/* Uniform Icon - Consistent Indigo/Slate styling */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 flex items-center justify-center text-indigo-600 mb-4">
+                  {suggestion.icon}
+                </div>
+                
+                {/* Title and Description */}
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{suggestion.title}</h3>
+                <p className="text-sm text-slate-600 mb-4">{suggestion.description}</p>
+                
+                {/* Action Button - Active and uniform */}
+                <button
+                  onClick={() => navigate(suggestion.link)}
+                  className="w-full py-2.5 px-4 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {suggestion.actionText}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Tools Grid - Core Features */}
-      <div ref={quickActionsRef}>
+      <div ref={quickActionsRef} className="mt-8">
         <h2 className="text-2xl font-bold text-slate-900 mb-6">Tools</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <MissionCard
