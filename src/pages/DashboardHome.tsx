@@ -802,9 +802,9 @@ export default function DashboardHome() {
               </div>
             </div>
           ) : (
-            <div className="text-slate-600">
-              <p className="text-lg font-medium">No Resume Found</p>
-              <p className="text-sm mt-1">Create your first resume to see your ATS score</p>
+            <div className="text-emerald-600">
+              <p className="text-lg font-medium">Ready to Build</p>
+              <p className="text-sm mt-1 text-slate-500">Create your first resume to see your ATS score</p>
             </div>
           )}
         </div>
@@ -819,13 +819,20 @@ export default function DashboardHome() {
               <h3 className="font-semibold text-slate-900">Application Velocity</h3>
             </div>
           </div>
-          <div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl font-bold text-green-600">{jobsThisWeek}</span>
-              <span className="text-sm text-slate-500">Jobs Applied this week</span>
+          {jobCount === 0 ? (
+            <div className="text-blue-600">
+              <p className="text-lg font-medium">Pipeline Ready</p>
+              <p className="text-sm mt-1 text-slate-500">Start tracking your applications</p>
             </div>
-            <p className="text-sm text-slate-600 mt-2">Total: {jobCount} applications</p>
-          </div>
+          ) : (
+            <div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-3xl font-bold text-green-600">{jobsThisWeek}</span>
+                <span className="text-sm text-slate-500">Jobs Applied this week</span>
+              </div>
+              <p className="text-sm text-slate-600 mt-2">Total: {jobCount} applications</p>
+            </div>
+          )}
         </div>
 
         {/* AI Credits Card */}
