@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '../../lib/supabase';
+import { APP_CONTEXT } from '../../lib/appContext';
 
 interface Message {
   text: string;
@@ -11,6 +13,7 @@ export default function ChatWidget() {
     { text: 'Hello! I am Luna.<br>How can I help you today?', type: 'agent' }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const starsContainerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
 
@@ -57,21 +60,65 @@ export default function ChatWidget() {
     }
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const messageText = inputValue.trim();
-    if (!messageText) return;
+    if (!messageText || isThinking) return;
 
     // Add user message
     setMessages(prev => [...prev, { text: messageText, type: 'user' }]);
     setInputValue('');
+    setIsThinking(true);
 
-    // Simulate agent reply
-    setTimeout(() => {
+    try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Please log in to use the chat widget');
+      }
+
+      // Prepare system message
+      const systemMessage = `You are Luna, the AI support agent for Career Clarified. Use the following context to answer user questions about the app features and pricing. If you don't know something, tell them to check Settings -> Support.\n\n${APP_CONTEXT}`;
+
+      // Call the API
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: messageText,
+          systemMessage: systemMessage,
+          model: 'gpt-4o-mini',
+          userId: user.id,
+          feature_name: 'chat_widget',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
+      // Add agent response
       setMessages(prev => [...prev, { 
-        text: 'Thanks for your message! An agent will be with you shortly.', 
+        text: data.content || 'I apologize, but I couldn\'t generate a response. Please try again or contact support.', 
         type: 'agent' 
       }]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An error occurred. Please try again or contact support via Settings -> Support.';
+      
+      setMessages(prev => [...prev, { 
+        text: `Sorry, I encountered an error: ${errorMessage}`, 
+        type: 'agent' 
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -133,6 +180,23 @@ export default function ChatWidget() {
                 dangerouslySetInnerHTML={{ __html: message.text }}
               />
             ))}
+            
+            {/* Thinking Indicator */}
+            {isThinking && (
+              <div
+                className="chat-message agent-message self-start p-3 rounded-lg max-w-[80%]"
+                style={{ position: 'relative', zIndex: 5 }}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Thinking</span>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input */}
@@ -149,7 +213,8 @@ export default function ChatWidget() {
               />
               <button
                 onClick={handleSendMessage}
-                className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-indigo-700 transition-colors"
+                disabled={isThinking || !inputValue.trim()}
+                className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"></line>
