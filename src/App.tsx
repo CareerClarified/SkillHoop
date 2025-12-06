@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import LogoLoader from './components/ui/LogoLoader';
 
 // Lazy load components for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -35,8 +36,11 @@ function LoadingFallback() {
   return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-indigo-600 font-medium">Loading Application...</p>
+        <div className="flex items-center justify-center mb-4">
+          <LogoLoader className="w-16 h-16" />
+        </div>
+        <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
+        <p className="text-indigo-500 text-sm">Loading Application</p>
       </div>
     </div>
   );

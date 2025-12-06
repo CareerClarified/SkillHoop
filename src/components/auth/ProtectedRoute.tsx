@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import LogoLoader from '../ui/LogoLoader';
 
 export default function ProtectedRoute() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -27,8 +28,11 @@ export default function ProtectedRoute() {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-indigo-600 font-medium">Loading...</p>
+          <div className="flex items-center justify-center mb-4">
+            <LogoLoader className="w-16 h-16" />
+          </div>
+          <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
+          <p className="text-indigo-500 text-sm">Screen loading</p>
         </div>
       </div>
     );

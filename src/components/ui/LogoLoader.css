@@ -1,0 +1,98 @@
+/* Container Pulse */
+.logo-loader-container {
+  animation: subtle-breathe 4s ease-in-out infinite;
+}
+
+/* --- The Solid Square (Starts Top-Left) --- */
+.logo-square-solid {
+  transform-origin: center;
+  animation: orbit-solid 3s linear infinite;
+}
+
+/* --- The Transparent Square (Starts Bottom-Right) --- */
+.logo-square-transparent {
+  transform-origin: center;
+  animation: orbit-transparent 3s linear infinite;
+}
+
+/* Motion Logic:
+   To orbit each other, they trace the corners of the bounding box.
+   Solid starts at (0,0). Transparent starts at (8,8) relative to Solid.
+   They move in opposite phases to circle a center point.
+*/
+
+@keyframes orbit-solid {
+  /* Phase 1: Top-Left (Front) */
+  0% {
+    transform: translate(0px, 0px) scale(1.1);
+    opacity: 1;
+    z-index: 10;
+  }
+
+  /* Phase 2: Top-Right (Moving Back) */
+  25% {
+    transform: translate(8px, 0px) scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Phase 3: Bottom-Right (Back - Behind the other square) */
+  50% {
+    transform: translate(8px, 8px) scale(0.8);
+    opacity: 0.6;
+    z-index: 1;
+  }
+
+  /* Phase 4: Bottom-Left (Moving Front) */
+  75% {
+    transform: translate(0px, 8px) scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Loop Back: Top-Left (Front) */
+  100% {
+    transform: translate(0px, 0px) scale(1.1);
+    opacity: 1;
+    z-index: 10;
+  }
+}
+
+@keyframes orbit-transparent {
+  /* Phase 1: Bottom-Right (Back) */
+  0% {
+    transform: translate(0px, 0px) scale(0.8);
+    opacity: 0.6;
+    z-index: 1;
+  }
+
+  /* Phase 2: Bottom-Left (Moving Front) */
+  25% {
+    transform: translate(-8px, 0px) scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Phase 3: Top-Left (Front - In front of the other square) */
+  50% {
+    transform: translate(-8px, -8px) scale(1.1);
+    opacity: 1; /* Becomes fully visible */
+    z-index: 10;
+  }
+
+  /* Phase 4: Top-Right (Moving Back) */
+  75% {
+    transform: translate(0px, -8px) scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Loop Back: Bottom-Right (Back) */
+  100% {
+    transform: translate(0px, 0px) scale(0.8);
+    opacity: 0.6;
+    z-index: 1;
+  }
+}
+
+@keyframes subtle-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import UpgradeModal from '../components/ui/UpgradeModal';
 import FeatureGate from '../components/auth/FeatureGate';
+import LogoLoader from '../components/ui/LogoLoader';
 
 // --- Types ---
 interface MatchScores {
@@ -357,8 +358,11 @@ Return your response in the following JSON format:
       localStorage.setItem('last_resume_analysis', JSON.stringify(analysisResult));
 
       // Dispatch event for Work History integration
-      if (typeof window !== 'undefined' && (window as any).dispatchApplicationTailorComplete) {
-        (window as any).dispatchApplicationTailorComplete(result.tailoredResume, '', '');
+      if (typeof window !== 'undefined' && 'dispatchApplicationTailorComplete' in window) {
+        const win = window as Window & { dispatchApplicationTailorComplete?: (resume: string, arg1: string, arg2: string) => void };
+        if (win.dispatchApplicationTailorComplete) {
+          win.dispatchApplicationTailorComplete(result.tailoredResume, '', '');
+        }
       }
 
       setStep('results');
@@ -638,20 +642,16 @@ Return your response in the following JSON format:
       {step === 'analysis' && (
         <div className="max-w-3xl mx-auto text-center">
           <div className="bg-white border border-gray-200 rounded-2xl p-12">
-            <div className="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-              <SparklesIcon className="w-12 h-12 text-white animate-pulse" />
+            <div className="flex items-center justify-center mb-8">
+              <LogoLoader className="w-24 h-24" />
             </div>
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Analyzing Job Requirements</h3>
-            <p className="text-lg text-gray-600 mb-8">
-              Our AI is analyzing the job posting and tailoring your resume...
+            <p className="text-lg text-gray-600 mb-2">
+              This might take a moment...
             </p>
-
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
-              <div
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 rounded-full transition-all duration-1000 shadow-lg animate-pulse"
-                style={{ width: '75%' }}
-              ></div>
-            </div>
+            <p className="text-base text-gray-500 mb-8">
+              Our AI is analyzing the job posting and tailoring your resume
+            </p>
 
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">Processing Steps</h4>
