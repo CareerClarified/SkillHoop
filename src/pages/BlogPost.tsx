@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Calendar, User, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -55,19 +55,10 @@ export default function BlogPost() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto px-4">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             <p className="mt-4 text-slate-600">Loading blog post...</p>
@@ -80,7 +71,7 @@ export default function BlogPost() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-slate-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto px-4">
           <div className="text-center">
             <p className="text-red-600 mb-4">Error: {error || 'Post not found'}</p>
             <Link
@@ -98,76 +89,75 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link
-            to="/blog"
-            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Blog
-          </Link>
-          {post.category && (
-            <span className="inline-block px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full mb-4">
-              {post.category}
-            </span>
-          )}
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">{post.title}</h1>
-          <div className="flex items-center gap-6 text-slate-600">
-            <div className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <span>{post.author}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              <span>{formatDate(post.published_at)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        {/* Back Link */}
+        <Link
+          to="/blog"
+          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Blog
+        </Link>
 
-      {/* Featured Image */}
-      {post.featured_image && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Category Badge */}
+        {post.category && (
+          <span className="inline-block px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-full mb-6">
+            {post.category}
+          </span>
+        )}
+
+        {/* Title */}
+        <h1 className="text-4xl font-bold text-slate-900 mb-3 text-center">
+          {post.title}
+        </h1>
+
+        {/* Author - Subtle */}
+        <p className="text-sm text-slate-500 text-center mb-8">
+          Career Clarified Team
+        </p>
+
+        {/* Hero Image */}
+        {post.featured_image ? (
           <img
             src={post.featured_image}
             alt={post.title}
-            className="w-full h-auto rounded-lg shadow-md"
+            className="w-full h-64 object-cover rounded-xl shadow-md my-8"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-64 bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 rounded-xl shadow-md my-8 flex items-center justify-center">
+            <div className="text-slate-400 text-sm">No image available</div>
+          </div>
+        )}
 
-      {/* Content */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div
-          className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-900 prose-ul:text-slate-700 prose-ol:text-slate-700 prose-li:text-slate-700"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-      </article>
+        {/* Content */}
+        <article>
+          <div
+            className="prose prose-lg prose-slate max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        </article>
 
-      {/* Related Feature CTA */}
-      {post.related_feature_link && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+        {/* Related Feature CTA - Professional Card */}
+        {post.related_feature_link && (
+          <div className="mt-12 bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+            <h3 className="text-2xl font-semibold text-slate-900 mb-3">
               Ready to take action?
             </h3>
-            <p className="text-slate-700 mb-4">
+            <p className="text-slate-600 mb-6 text-lg">
               Use our tools to implement what you've learned and advance your career.
             </p>
             <Link
-              to="/"
+              to={post.related_feature_link}
               className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
             >
               Get Started
             </Link>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Footer spacing */}
-      <div className="h-12"></div>
+        {/* Footer spacing */}
+        <div className="h-12"></div>
+      </div>
     </div>
   );
 }
