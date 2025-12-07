@@ -131,10 +131,7 @@ export default function BlogPost() {
 
         {/* Content */}
         <article>
-          <div
-            className="prose prose-lg prose-slate max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div className="prose prose-lg prose-slate max-w-none mx-auto" dangerouslySetInnerHTML={{ __html: post.content }} />
         </article>
 
         {/* Related Feature CTA - Professional Card */}
