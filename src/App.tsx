@@ -57,6 +57,14 @@ function App() {
           {/* Landing page - outside DashboardLayout */}
           <Route path="/" element={<LandingPage />} />
           
+          {/* Admin routes - Protected - MUST be near the top to avoid catch-all conflicts */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin/blog" element={<AdminBlog />} />
+          </Route>
+          
+          {/* Test route for debugging */}
+          <Route path="/test-admin" element={<div>Admin Route Works</div>} />
+          
           {/* Pricing page - accessible to everyone */}
           <Route path="/pricing" element={<Pricing />} />
           
@@ -72,11 +80,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          
-          {/* Admin routes - Protected */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin/blog" element={<AdminBlog />} />
-          </Route>
           
           {/* Dashboard routes with layout - Protected */}
           <Route element={<ProtectedRoute />}>

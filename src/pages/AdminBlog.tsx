@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Plus, Publish, Eye, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import LogoLoader from '../components/ui/LogoLoader';
 
 interface BlogPost {
   id: string;
@@ -16,12 +17,16 @@ interface BlogPost {
 }
 
 // Admin user ID - you can set this in environment variables or hardcode your user ID
-const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID || '';
+const adminId = import.meta.env.VITE_ADMIN_USER_ID;
+if (!adminId) {
+  console.warn('VITE_ADMIN_USER_ID is not set. Admin access will be restricted.');
+}
 
 export default function AdminBlog() {
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const [drafts, setDrafts] = useState<BlogPost[]>([]);
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
@@ -43,19 +48,33 @@ export default function AdminBlog() {
     }
   }, [isAuthorized]);
 
+  // Redirect to home if user is null after loading
+  useEffect(() => {
+    if (!loading && user === null) {
+      console.log('Admin Page - User is null, redirecting to home');
+      navigate('/', { replace: true });
+    }
+  }, [loading, user, navigate]);
+
   const checkAuthorization = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      // Debug logging
+      console.log('Admin Page - User:', currentUser, 'Admin ID:', adminId);
+      
+      setUser(currentUser);
+      
+      if (!currentUser) {
         setIsAuthorized(false);
         setLoading(false);
         return;
       }
 
       // Check if user is admin
-      // If ADMIN_USER_ID is set, check against it
+      // If adminId is set, check against it
       // Otherwise, allow any authenticated user (you can restrict this further)
-      if (ADMIN_USER_ID && user.id !== ADMIN_USER_ID) {
+      if (adminId && adminId.trim() !== '' && currentUser.id !== adminId) {
         setIsAuthorized(false);
         setLoading(false);
         return;
@@ -65,6 +84,7 @@ export default function AdminBlog() {
     } catch (err) {
       console.error('Error checking authorization:', err);
       setIsAuthorized(false);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -163,17 +183,33 @@ export default function AdminBlog() {
     }
   };
 
+  // Loading state - show loader while checking auth
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-slate-600">Loading...</p>
+          <div className="flex items-center justify-center mb-4">
+            <LogoLoader className="w-16 h-16" />
+          </div>
+          <p className="text-indigo-600 font-medium mb-2">Loading admin panel...</p>
+          <p className="text-indigo-500 text-sm">Just a moment...</p>
         </div>
       </div>
     );
   }
 
+  // Null check - if user is null after loading, redirect (handled in useEffect, but show message while redirecting)
+  if (user === null) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authorized - user exists but is not admin
   if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
