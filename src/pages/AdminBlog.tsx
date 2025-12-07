@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Plus, Publish, Eye, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Send, Eye, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import LogoLoader from '../components/ui/LogoLoader';
 
 interface BlogPost {
@@ -364,7 +364,7 @@ export default function AdminBlog() {
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <>
-                            <Publish className="w-4 h-4" />
+                            <Send className="w-4 h-4" />
                             Publish
                           </>
                         )}
