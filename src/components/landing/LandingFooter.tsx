@@ -51,9 +51,9 @@ export default function LandingFooter() {
                   </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-slate-600 hover:text-indigo-600 transition-colors">
+                  <Link to="/faq" className="text-slate-600 hover:text-indigo-600 transition-colors">
                     FAQs
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="#" className="text-slate-600 hover:text-indigo-600 transition-colors">
