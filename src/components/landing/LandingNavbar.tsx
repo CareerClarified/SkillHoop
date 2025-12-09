@@ -53,9 +53,9 @@ export default function LandingNavbar() {
               <a href="#success-stories" className="text-lg text-slate-600 hover:text-slate-900 font-medium transition-colors">
                 Success Stories
               </a>
-              <a href="#" className="text-lg text-slate-600 hover:text-slate-900 font-medium transition-colors">
+              <Link to="/faq" className="text-lg text-slate-600 hover:text-slate-900 font-medium transition-colors">
                 FAQ
-              </a>
+              </Link>
             </nav>
             
             <div className="hidden md:flex items-center space-x-2">
@@ -109,13 +109,13 @@ export default function LandingNavbar() {
               >
                 Success Stories
               </a>
-              <a
-                href="#"
+              <Link
+                to="/faq"
                 className="text-lg text-slate-600 hover:text-slate-900 font-medium transition-colors p-2 text-center rounded-lg"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 FAQ
-              </a>
+              </Link>
               <div className="flex flex-col items-center space-y-4 pt-4 border-t border-slate-200">
                 <Link
                   to="/login"
