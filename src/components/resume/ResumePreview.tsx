@@ -132,6 +132,45 @@ export default function ResumePreview() {
                         <p className="text-slate-500 italic text-sm">No experience entries yet.</p>
                       )}
                     </>
+                  ) : section.type === 'education' ? (
+                    <>
+                      {/* Education Section Title */}
+                      <h2
+                        className="text-lg font-bold uppercase mb-3 pb-2 border-b-2"
+                        style={{ borderColor: settings.accentColor }}
+                      >
+                        {section.title}
+                      </h2>
+                      {section.items && section.items.length > 0 ? (
+                        <div className="space-y-4">
+                          {section.items.map((item, index: number) => (
+                            <div key={item.id || index} className="text-slate-700">
+                              {/* Row 1: Institution (left) and Date (right) */}
+                              <div className="flex justify-between items-start mb-1">
+                                <h3 className="font-bold text-slate-900">{item.title}</h3>
+                                {item.date && (
+                                  <span className="text-sm text-slate-600 whitespace-nowrap ml-4">
+                                    {item.date}
+                                  </span>
+                                )}
+                              </div>
+                              {/* Row 2: Degree (italic) */}
+                              {item.subtitle && (
+                                <p className="italic text-slate-700 mb-2">{item.subtitle}</p>
+                              )}
+                              {/* Row 3: Description (small text) */}
+                              {item.description && (
+                                <p className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-slate-500 italic text-sm">No education entries yet.</p>
+                      )}
+                    </>
                   ) : (
                     <>
                       {/* Default Section Layout */}
