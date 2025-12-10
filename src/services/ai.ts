@@ -1,13 +1,5 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-// Note: dangerouslyAllowBrowser is set to true for development only
-// In production, API calls should be made through a backend server
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // Dev only - should use backend in production
-});
-
 export interface ResumeAnalysisResult {
   score: number; // 0-100
   feedback: string[]; // Array of 3 specific improvements
@@ -24,6 +16,20 @@ export async function analyzeResume(
   resumeData: any,
   jobDescription: string
 ): Promise<ResumeAnalysisResult> {
+  // Check if API key exists before initializing
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('OpenAI API Key is missing. Please check your environment variables.');
+  }
+
+  // Initialize OpenAI client
+  // Note: dangerouslyAllowBrowser is set to true for development only
+  // In production, API calls should be made through a backend server
+  const openai = new OpenAI({
+    apiKey: apiKey,
+    dangerouslyAllowBrowser: true, // Dev only - should use backend in production
+  });
+
   const systemPrompt =
     'You are an expert ATS (Applicant Tracking System) optimizer. Analyze the resume JSON against the provided Job Description.';
 
