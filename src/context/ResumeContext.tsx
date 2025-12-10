@@ -15,7 +15,8 @@ type ResumeAction =
   | { type: 'REMOVE_SECTION_ITEM'; payload: { sectionId: string; itemId: string } }
   | { type: 'UPDATE_SECTION_ITEM'; payload: { sectionId: string; itemId: string; data: Partial<ResumeSection['items'][0]> } }
   | { type: 'RESET_RESUME' }
-  | { type: 'TOGGLE_AI_SIDEBAR' };
+  | { type: 'TOGGLE_AI_SIDEBAR' }
+  | { type: 'SET_FOCUSED_SECTION'; payload: string | null };
 
 // Context state type
 interface ResumeContextState {
@@ -156,6 +157,12 @@ function resumeReducer(state: ResumeData, action: ResumeAction): ResumeData {
       return {
         ...state,
         isAISidebarOpen: !state.isAISidebarOpen,
+      };
+
+    case 'SET_FOCUSED_SECTION':
+      return {
+        ...state,
+        focusedSectionId: action.payload,
       };
 
     default:

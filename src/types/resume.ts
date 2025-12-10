@@ -49,6 +49,7 @@ export interface ResumeData {
   updatedAt: string;
   isAISidebarOpen: boolean;
   targetJob: TargetJob;
+  focusedSectionId: string | null;
 }
 
 export const INITIAL_RESUME_STATE: ResumeData = {
@@ -83,5 +84,6 @@ export const INITIAL_RESUME_STATE: ResumeData = {
   updatedAt: new Date().toISOString(),
   isAISidebarOpen: false,
   targetJob: { title: '', description: '', industry: '' },
+  focusedSectionId: null,
 };
 

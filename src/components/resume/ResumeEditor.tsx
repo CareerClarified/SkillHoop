@@ -1,7 +1,39 @@
+import React, { useEffect, useRef } from 'react';
 import { useResume } from '../../context/ResumeContext';
 import ExperienceEditor from './ExperienceEditor';
 import EducationEditor from './EducationEditor';
 import SkillsEditor from './SkillsEditor';
+
+// EditorSection component for highlighting and auto-scrolling focused sections
+function EditorSection({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  const { state, dispatch } = useResume();
+  const isActive = state.focusedSectionId === id;
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isActive && sectionRef.current) {
+      sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Auto-clear focus after 2000ms
+      const timeout = setTimeout(() => {
+        dispatch({ type: 'SET_FOCUSED_SECTION', payload: null });
+      }, 2000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isActive, dispatch]);
+
+  return (
+    <div
+      ref={sectionRef}
+      className={`transition-all duration-500 rounded-lg p-1 ${
+        isActive ? 'ring-2 ring-indigo-500 bg-indigo-50/50' : 'ring-0'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function ResumeEditor() {
   const { state, dispatch } = useResume();
@@ -17,10 +49,11 @@ export default function ResumeEditor() {
   return (
     <div className="p-6 space-y-8">
       {/* Personal Details Section */}
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900 mb-6">Personal Details</h2>
-        
-        <div className="space-y-4">
+      <EditorSection id="personal" title="Personal Details">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-6">Personal Details</h2>
+          
+          <div className="space-y-4">
           {/* Full Name */}
           <div className="bg-white/50 backdrop-blur rounded-lg p-3">
             <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1">
@@ -126,16 +159,22 @@ export default function ResumeEditor() {
             />
           </div>
         </div>
-      </div>
+      </EditorSection>
 
       {/* Experience Section */}
-      <ExperienceEditor />
+      <EditorSection id="experience" title="Experience">
+        <ExperienceEditor />
+      </EditorSection>
 
       {/* Education Section */}
-      <EducationEditor />
+      <EditorSection id="education" title="Education">
+        <EducationEditor />
+      </EditorSection>
 
       {/* Skills Section */}
-      <SkillsEditor />
+      <EditorSection id="skills" title="Skills">
+        <SkillsEditor />
+      </EditorSection>
     </div>
   );
 }

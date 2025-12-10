@@ -1,4 +1,34 @@
+import React from 'react';
 import { useResume } from '../../context/ResumeContext';
+import { Edit } from '../ui/Icons';
+
+// SectionWrapper component for clickable sections with edit badge
+function SectionWrapper({ sectionId, children }: { sectionId: string; children: React.ReactNode }) {
+  const { dispatch } = useResume();
+
+  const handleClick = () => {
+    dispatch({ type: 'SET_FOCUSED_SECTION', payload: sectionId });
+  };
+
+  return (
+    <div
+      className="relative group cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-indigo-100 hover:ring-offset-4 hover:ring-offset-white rounded-md"
+      onClick={handleClick}
+    >
+      {/* Edit Badge */}
+      <button
+        className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white text-indigo-500 p-1.5 rounded-full shadow-sm border border-indigo-100"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClick();
+        }}
+      >
+        <Edit className="w-4 h-4" />
+      </button>
+      {children}
+    </div>
+  );
+}
 
 export default function ResumePreview() {
   const { state } = useResume();
@@ -24,66 +54,70 @@ export default function ResumePreview() {
         }}
       >
         {/* Header - Personal Information */}
-        <header className="text-center mb-6 pb-6 border-b border-slate-200">
-          {personalInfo.fullName && (
-            <h1
-              className="text-3xl font-bold mb-2"
-              style={{ color: settings.accentColor }}
-            >
-              {personalInfo.fullName}
-            </h1>
-          )}
-          
-          {personalInfo.jobTitle && (
-            <p className="text-lg text-slate-600 mb-3">{personalInfo.jobTitle}</p>
-          )}
+        <SectionWrapper sectionId="personal">
+          <header className="text-center mb-6 pb-6 border-b border-slate-200">
+            {personalInfo.fullName && (
+              <h1
+                className="text-3xl font-bold mb-2"
+                style={{ color: settings.accentColor }}
+              >
+                {personalInfo.fullName}
+              </h1>
+            )}
+            
+            {personalInfo.jobTitle && (
+              <p className="text-lg text-slate-600 mb-3">{personalInfo.jobTitle}</p>
+            )}
 
-          {/* Contact Information */}
-          {contactInfo.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-600">
-              {personalInfo.email && (
-                <span>{personalInfo.email}</span>
-              )}
-              {personalInfo.phone && (
-                <span>{personalInfo.phone}</span>
-              )}
-              {personalInfo.linkedin && (
-                <a
-                  href={personalInfo.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                  style={{ color: settings.accentColor }}
-                >
-                  LinkedIn
-                </a>
-              )}
-              {personalInfo.website && (
-                <a
-                  href={personalInfo.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                  style={{ color: settings.accentColor }}
-                >
-                  Website
-                </a>
-              )}
-            </div>
-          )}
-        </header>
+            {/* Contact Information */}
+            {contactInfo.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-600">
+                {personalInfo.email && (
+                  <span>{personalInfo.email}</span>
+                )}
+                {personalInfo.phone && (
+                  <span>{personalInfo.phone}</span>
+                )}
+                {personalInfo.linkedin && (
+                  <a
+                    href={personalInfo.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                    style={{ color: settings.accentColor }}
+                  >
+                    LinkedIn
+                  </a>
+                )}
+                {personalInfo.website && (
+                  <a
+                    href={personalInfo.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                    style={{ color: settings.accentColor }}
+                  >
+                    Website
+                  </a>
+                )}
+              </div>
+            )}
+          </header>
+        </SectionWrapper>
 
         {/* Professional Summary */}
         {personalInfo.summary && (
-          <section className="mb-6">
-            <h2
-              className="text-xl font-semibold mb-3"
-              style={{ color: settings.accentColor }}
-            >
-              Professional Summary
-            </h2>
-            <p className="text-slate-700 whitespace-pre-line">{personalInfo.summary}</p>
-          </section>
+          <SectionWrapper sectionId="summary">
+            <section className="mb-6">
+              <h2
+                className="text-xl font-semibold mb-3"
+                style={{ color: settings.accentColor }}
+              >
+                Professional Summary
+              </h2>
+              <p className="text-slate-700 whitespace-pre-line">{personalInfo.summary}</p>
+            </section>
+          </SectionWrapper>
         )}
 
         {/* Sections */}
@@ -92,7 +126,8 @@ export default function ResumePreview() {
             {sections
               .filter((section) => section.isVisible)
               .map((section) => (
-                <section key={section.id} className="mb-6">
+                <SectionWrapper key={section.id} sectionId={section.id}>
+                  <section className="mb-6">
                   {section.type === 'experience' ? (
                     <>
                       {/* Experience Section Title */}
@@ -227,7 +262,8 @@ export default function ResumePreview() {
                       )}
                     </>
                   )}
-                </section>
+                  </section>
+                </SectionWrapper>
               ))}
           </div>
         ) : (
