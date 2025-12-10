@@ -8,7 +8,10 @@ type ResumeAction =
   | { type: 'UPDATE_SETTINGS'; payload: Partial<FormattingSettings> }
   | { type: 'ADD_SECTION'; payload: ResumeSection }
   | { type: 'REMOVE_SECTION'; payload: string } // section id
-  | { type: 'UPDATE_SECTION'; payload: { id: string; updates: Partial<ResumeSection> } };
+  | { type: 'UPDATE_SECTION'; payload: { id: string; updates: Partial<ResumeSection> } }
+  | { type: 'ADD_SECTION_ITEM'; payload: { sectionId: string; item: ResumeSection['items'][0] } }
+  | { type: 'REMOVE_SECTION_ITEM'; payload: { sectionId: string; itemId: string } }
+  | { type: 'UPDATE_SECTION_ITEM'; payload: { sectionId: string; itemId: string; data: Partial<ResumeSection['items'][0]> } };
 
 // Context state type
 interface ResumeContextState {
@@ -65,6 +68,46 @@ function resumeReducer(state: ResumeData, action: ResumeAction): ResumeData {
         sections: state.sections.map((section) =>
           section.id === action.payload.id
             ? { ...section, ...action.payload.updates }
+            : section
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+
+    case 'ADD_SECTION_ITEM':
+      return {
+        ...state,
+        sections: state.sections.map((section) =>
+          section.id === action.payload.sectionId
+            ? { ...section, items: [...section.items, action.payload.item] }
+            : section
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+
+    case 'REMOVE_SECTION_ITEM':
+      return {
+        ...state,
+        sections: state.sections.map((section) =>
+          section.id === action.payload.sectionId
+            ? { ...section, items: section.items.filter((item) => item.id !== action.payload.itemId) }
+            : section
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+
+    case 'UPDATE_SECTION_ITEM':
+      return {
+        ...state,
+        sections: state.sections.map((section) =>
+          section.id === action.payload.sectionId
+            ? {
+                ...section,
+                items: section.items.map((item) =>
+                  item.id === action.payload.itemId
+                    ? { ...item, ...action.payload.data }
+                    : item
+                ),
+              }
             : section
         ),
         updatedAt: new Date().toISOString(),
