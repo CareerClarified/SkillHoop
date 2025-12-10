@@ -3,7 +3,7 @@ import { useResume } from '../../context/ResumeContext';
 import { INITIAL_RESUME_STATE } from '../../types/resume';
 
 export default function ResumeToolbar() {
-  const { dispatch } = useResume();
+  const { state, dispatch } = useResume();
 
   const handleSave = () => {
     console.log('Saving...');
@@ -25,8 +25,7 @@ export default function ResumeToolbar() {
   };
 
   const handleAIAssistant = () => {
-    console.log('AI Assistant activated');
-    // TODO: Implement AI assistant functionality
+    dispatch({ type: 'TOGGLE_AI_SIDEBAR' });
   };
 
   return (
@@ -43,7 +42,11 @@ export default function ResumeToolbar() {
       {/* AI Assistant Button - Secondary */}
       <button
         onClick={handleAIAssistant}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 hover:border-slate-400 transition-colors"
+        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+          state.isAISidebarOpen
+            ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100'
+            : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400'
+        }`}
       >
         <Sparkles className="w-4 h-4" />
         <span>AI Assistant</span>

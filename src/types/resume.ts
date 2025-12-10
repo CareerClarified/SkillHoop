@@ -33,6 +33,12 @@ export interface FormattingSettings {
   layout: 'classic' | 'modern' | 'columns';
 }
 
+export interface TargetJob {
+  title: string;
+  description: string;
+  industry: string;
+}
+
 export interface ResumeData {
   id: string;
   title: string;
@@ -41,6 +47,8 @@ export interface ResumeData {
   settings: FormattingSettings;
   atsScore: number;
   updatedAt: string;
+  isAISidebarOpen: boolean;
+  targetJob: TargetJob;
 }
 
 export const INITIAL_RESUME_STATE: ResumeData = {
@@ -73,5 +81,7 @@ export const INITIAL_RESUME_STATE: ResumeData = {
   settings: { fontFamily: 'Inter', fontSize: 11, accentColor: '#3B82F6', lineHeight: 1.5, layout: 'classic' },
   atsScore: 0,
   updatedAt: new Date().toISOString(),
+  isAISidebarOpen: false,
+  targetJob: { title: '', description: '', industry: '' },
 };
 
