@@ -46,7 +46,7 @@ export default function ResumePreview() {
     <div className="min-h-full flex items-center justify-center">
       {/* A4 Paper Container */}
       <div
-        className="w-[210mm] min-h-[297mm] bg-white shadow-2xl p-8 text-slate-900 transform scale-90"
+        className="resume-preview-container w-[210mm] min-h-[297mm] bg-white shadow-2xl p-8 text-slate-900 transform scale-90"
         style={{
           fontFamily: settings.fontFamily,
           fontSize: `${settings.fontSize}pt`,

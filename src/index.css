@@ -713,12 +713,37 @@ aside.collapsed .dropdown-container {
 
 /* Print styles */
 @media print {
-  .no-print {
+  /* Hide UI elements - Crucial */
+  header, nav, aside, .toolbar, .no-print, button {
     display: none !important;
   }
-  
-  .print-only {
+
+  /* Reset Layout */
+  body, #root, main, .resume-studio-layout {
+    background: white !important;
+    height: auto !important;
+    width: 100% !important;
+    overflow: visible !important;
     display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Target the Preview to fill the page */
+  .resume-preview-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+  }
+
+  /* Ensure text colors print correctly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

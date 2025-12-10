@@ -143,20 +143,28 @@ export default function ResumeEditor() {
               placeholder="https://johndoe.com"
             />
           </div>
+          </div>
+        </div>
+      </EditorSection>
 
-          {/* Professional Summary */}
-          <div className="bg-white/50 backdrop-blur rounded-lg p-3">
-            <label htmlFor="summary" className="block text-sm font-medium text-slate-700 mb-1">
-              Professional Summary
-            </label>
-            <textarea
-              id="summary"
-              value={personalInfo.summary || ''}
-              onChange={(e) => handleInputChange('summary', e.target.value)}
-              rows={6}
-              className="w-full bg-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/50 px-2 py-1.5 resize-none"
-              placeholder="A brief summary of your professional background and key achievements..."
-            />
+      {/* Professional Summary Section */}
+      <EditorSection id="summary" title="Summary">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-6">Professional Summary</h2>
+          <div className="space-y-4">
+            <div className="bg-white/50 backdrop-blur rounded-lg p-3">
+              <label htmlFor="summary" className="block text-sm font-medium text-slate-700 mb-1">
+                Professional Summary
+              </label>
+              <textarea
+                id="summary"
+                value={personalInfo.summary || ''}
+                onChange={(e) => handleInputChange('summary', e.target.value)}
+                rows={6}
+                className="w-full bg-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/50 px-2 py-1.5 resize-none"
+                placeholder="A brief summary of your professional background and key achievements..."
+              />
+            </div>
           </div>
         </div>
       </EditorSection>
