@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff } from 'lucide-react';
+import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
 
 type TabId = 'sections' | 'templates' | 'formatting' | 'copilot';
 
@@ -29,6 +29,16 @@ export interface ResumeControlPanelData {
   atsScore: number;
 }
 
+export interface ExperienceItem {
+  id: string;
+  jobTitle: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
 export interface ResumeData {
   personalInfo: {
     fullName: string;
@@ -38,6 +48,7 @@ export interface ResumeData {
     location: string;
   };
   summary: string;
+  experience: ExperienceItem[];
 }
 
 export interface ResumeControlPanelProps {
@@ -48,6 +59,9 @@ export interface ResumeControlPanelProps {
   onSectionToggle: (id: string) => void;
   onAIAction: (action: string) => void;
   onContentChange: (path: string, value: string) => void;
+  onAddExperience: () => void;
+  onRemoveExperience: (id: string) => void;
+  onUpdateExperience: (id: string, field: string, value: string) => void;
 }
 
 // Sections Tab Component
@@ -56,10 +70,14 @@ interface SectionsTabProps {
   resumeData: ResumeData;
   onToggle: (id: string) => void;
   onContentChange: (path: string, value: string) => void;
+  onAddExperience: () => void;
+  onRemoveExperience: (id: string) => void;
+  onUpdateExperience: (id: string, field: string, value: string) => void;
 }
 
-function SectionsTab({ sections, resumeData, onToggle, onContentChange }: SectionsTabProps) {
+function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience }: SectionsTabProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
 
   const handleSectionClick = (sectionId: string) => {
     if (expandedSection === sectionId) {
@@ -208,6 +226,129 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange }: Sectio
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       placeholder="Passionate designer with 5+ years of experience..."
                     />
+                  </div>
+                )}
+
+                {section.id === 'experience' && (
+                  <div className="space-y-3">
+                    {/* List of Experience Items */}
+                    {resumeData.experience.map((exp) => {
+                      const isExpanded = expandedExperienceId === exp.id;
+                      return (
+                        <div
+                          key={exp.id}
+                          className="border border-gray-200 rounded-lg overflow-hidden"
+                        >
+                          {/* Experience Item Header */}
+                          <div className="flex items-center justify-between p-3 bg-gray-50">
+                            <button
+                              onClick={() => setExpandedExperienceId(isExpanded ? null : exp.id)}
+                              className="flex-1 text-left"
+                            >
+                              <div className="text-sm font-medium text-gray-900">
+                                {exp.jobTitle || "New Position"} {exp.company && `at ${exp.company}`}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => onRemoveExperience(exp.id)}
+                              className="ml-2 p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Expanded Form */}
+                          {isExpanded && (
+                            <div className="p-4 space-y-4 bg-white">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Job Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={exp.jobTitle}
+                                  onChange={(e) => onUpdateExperience(exp.id, 'jobTitle', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Senior Software Engineer"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Company
+                                </label>
+                                <input
+                                  type="text"
+                                  value={exp.company}
+                                  onChange={(e) => onUpdateExperience(exp.id, 'company', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Tech Company Inc."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Location
+                                </label>
+                                <input
+                                  type="text"
+                                  value={exp.location}
+                                  onChange={(e) => onUpdateExperience(exp.id, 'location', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="San Francisco, CA"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                    Start Date
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={exp.startDate}
+                                    onChange={(e) => onUpdateExperience(exp.id, 'startDate', e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="2021"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                    End Date
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={exp.endDate}
+                                    onChange={(e) => onUpdateExperience(exp.id, 'endDate', e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Present"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Description
+                                </label>
+                                <textarea
+                                  value={exp.description}
+                                  onChange={(e) => onUpdateExperience(exp.id, 'description', e.target.value)}
+                                  rows={6}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                  placeholder="Describe your responsibilities and achievements..."
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Add Position Button */}
+                    <button
+                      onClick={onAddExperience}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Position
+                    </button>
                   </div>
                 )}
               </div>
@@ -429,6 +570,9 @@ export default function ResumeControlPanel({
   onSectionToggle,
   onAIAction,
   onContentChange,
+  onAddExperience,
+  onRemoveExperience,
+  onUpdateExperience,
 }: ResumeControlPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('sections');
 
@@ -448,6 +592,9 @@ export default function ResumeControlPanel({
             resumeData={resumeData}
             onToggle={onSectionToggle}
             onContentChange={onContentChange}
+            onAddExperience={onAddExperience}
+            onRemoveExperience={onRemoveExperience}
+            onUpdateExperience={onUpdateExperience}
           />
         );
       case 'templates':

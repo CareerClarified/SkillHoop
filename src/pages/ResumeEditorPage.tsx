@@ -41,7 +41,18 @@ export default function ResumeEditorPage() {
       phone: "+1 234 567 890",
       location: "San Francisco, CA"
     },
-    summary: "Passionate designer with 5+ years of experience..."
+    summary: "Passionate designer with 5+ years of experience...",
+    experience: [
+      {
+        id: "1",
+        jobTitle: "Senior Software Engineer",
+        company: "Tech Company Inc.",
+        location: "San Francisco, CA",
+        startDate: "2021",
+        endDate: "Present",
+        description: "Led development of a microservices architecture serving 1M+ daily active users\nReduced page load time by 40% through optimization and caching strategies\nMentored junior developers and established coding best practices"
+      }
+    ]
   });
 
   // Handler Functions
@@ -85,6 +96,42 @@ export default function ResumeEditorPage() {
     if (action === 'ats') {
       setAtsScore(85); // Mock score after optimization
     }
+  };
+
+  // Experience Handlers
+  const handleAddExperience = () => {
+    const newId = Date.now().toString();
+    setResumeData((prev) => ({
+      ...prev,
+      experience: [
+        ...prev.experience,
+        {
+          id: newId,
+          jobTitle: "",
+          company: "",
+          location: "",
+          startDate: "",
+          endDate: "",
+          description: ""
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveExperience = (id: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      experience: prev.experience.filter((exp) => exp.id !== id)
+    }));
+  };
+
+  const handleUpdateExperience = (id: string, field: string, value: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      experience: prev.experience.map((exp) =>
+        exp.id === id ? { ...exp, [field]: value } : exp
+      )
+    }));
   };
 
   // Prepare data object for ResumeControlPanel
@@ -141,6 +188,9 @@ export default function ResumeEditorPage() {
             onSectionToggle={handleSectionToggle}
             onAIAction={handleAIAction}
             onContentChange={handleContentChange}
+            onAddExperience={handleAddExperience}
+            onRemoveExperience={handleRemoveExperience}
+            onUpdateExperience={handleUpdateExperience}
           />
         </div>
 
@@ -209,39 +259,28 @@ export default function ResumeEditorPage() {
                   Experience
                 </h2>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-semibold text-gray-900">Senior Software Engineer</h3>
-                      <span className="text-gray-600 text-sm">2021 - Present</span>
+                  {resumeData.experience.map((exp) => (
+                    <div key={exp.id}>
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-gray-900">{exp.jobTitle || "Job Title"}</h3>
+                        <span className="text-gray-600 text-sm">
+                          {exp.startDate && exp.endDate ? `${exp.startDate} - ${exp.endDate}` : 
+                           exp.startDate ? exp.startDate : ""}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-2">
+                        {exp.company && exp.location ? `${exp.company} • ${exp.location}` :
+                         exp.company ? exp.company : ""}
+                      </p>
+                      {exp.description && (
+                        <div className="text-gray-700 whitespace-pre-wrap">
+                          {exp.description.split('\n').map((line, idx) => (
+                            <p key={idx} className="mb-1">{line}</p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-600 text-sm mb-2">Tech Company Inc. • San Francisco, CA</p>
-                    <ul className="list-disc list-inside text-gray-700 space-y-1 ml-2">
-                      <li>
-                        Led development of a microservices architecture serving 1M+ daily active users
-                      </li>
-                      <li>
-                        Reduced page load time by 40% through optimization and caching strategies
-                      </li>
-                      <li>
-                        Mentored junior developers and established coding best practices
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-semibold text-gray-900">Software Engineer</h3>
-                      <span className="text-gray-600 text-sm">2019 - 2021</span>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-2">Startup Co. • Remote</p>
-                    <ul className="list-disc list-inside text-gray-700 space-y-1 ml-2">
-                      <li>
-                        Built responsive web applications using React and Node.js
-                      </li>
-                      <li>
-                        Collaborated with design team to implement pixel-perfect UI components
-                      </li>
-                    </ul>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
