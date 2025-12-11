@@ -62,7 +62,8 @@ export default function ResumeEditorPage() {
         startDate: "2015",
         endDate: "2019"
       }
-    ]
+    ],
+    skills: ["JavaScript", "React", "Node.js", "Product Management"]
   });
 
   // Handler Functions
@@ -179,6 +180,24 @@ export default function ResumeEditorPage() {
     }));
   };
 
+  // Skills Handlers
+  const handleAddSkill = (skill: string) => {
+    const trimmedSkill = skill.trim();
+    if (trimmedSkill && !resumeData.skills.includes(trimmedSkill)) {
+      setResumeData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, trimmedSkill]
+      }));
+    }
+  };
+
+  const handleRemoveSkill = (index: number) => {
+    setResumeData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((_, i) => i !== index)
+    }));
+  };
+
   // Prepare data object for ResumeControlPanel
   const panelData: ResumeControlPanelData = {
     currentTemplateId: templateId,
@@ -239,6 +258,8 @@ export default function ResumeEditorPage() {
             onAddEducation={handleAddEducation}
             onRemoveEducation={handleRemoveEducation}
             onUpdateEducation={handleUpdateEducation}
+            onAddSkill={handleAddSkill}
+            onRemoveSkill={handleRemoveSkill}
           />
         </div>
 
@@ -373,9 +394,9 @@ export default function ResumeEditorPage() {
                   Skills
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'AWS', 'Docker', 'GraphQL'].map((skill) => (
+                  {resumeData.skills.map((skill, index) => (
                     <span
-                      key={skill}
+                      key={index}
                       className="px-3 py-1 rounded-full text-sm font-medium"
                       style={{
                         backgroundColor: `${formatting.accentColor}20`,

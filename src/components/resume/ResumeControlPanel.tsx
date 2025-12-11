@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2, X } from 'lucide-react';
 
 type TabId = 'sections' | 'templates' | 'formatting' | 'copilot';
 
@@ -59,6 +59,7 @@ export interface ResumeData {
   summary: string;
   experience: ExperienceItem[];
   education: EducationItem[];
+  skills: string[];
 }
 
 export interface ResumeControlPanelProps {
@@ -89,12 +90,15 @@ interface SectionsTabProps {
   onAddEducation: () => void;
   onRemoveEducation: (id: string) => void;
   onUpdateEducation: (id: string, field: string, value: string) => void;
+  onAddSkill: (skill: string) => void;
+  onRemoveSkill: (index: number) => void;
 }
 
-function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience, onAddEducation, onRemoveEducation, onUpdateEducation }: SectionsTabProps) {
+function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience, onAddEducation, onRemoveEducation, onUpdateEducation, onAddSkill, onRemoveSkill }: SectionsTabProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
   const [expandedEducationId, setExpandedEducationId] = useState<string | null>(null);
+  const [skillInput, setSkillInput] = useState<string>('');
 
   const handleSectionClick = (sectionId: string) => {
     if (expandedSection === sectionId) {
@@ -479,6 +483,60 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                     </button>
                   </div>
                 )}
+
+                {section.id === 'skills' && (
+                  <div className="space-y-4">
+                    {/* Input Field with Add Button */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (skillInput.trim()) {
+                              onAddSkill(skillInput);
+                              setSkillInput('');
+                            }
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter a skill and press Enter"
+                      />
+                      <button
+                        onClick={() => {
+                          if (skillInput.trim()) {
+                            onAddSkill(skillInput);
+                            setSkillInput('');
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {/* Skills Chips */}
+                    <div className="flex flex-wrap gap-2">
+                      {resumeData.skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1 text-sm font-medium text-gray-700"
+                        >
+                          <span>{skill}</span>
+                          <button
+                            onClick={() => onRemoveSkill(index)}
+                            className="ml-1 text-gray-500 hover:text-red-600 transition-colors p-0.5 rounded-full hover:bg-gray-200"
+                            title="Remove skill"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -704,6 +762,8 @@ export default function ResumeControlPanel({
   onAddEducation,
   onRemoveEducation,
   onUpdateEducation,
+  onAddSkill,
+  onRemoveSkill,
 }: ResumeControlPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('sections');
 
@@ -729,6 +789,8 @@ export default function ResumeControlPanel({
             onAddEducation={onAddEducation}
             onRemoveEducation={onRemoveEducation}
             onUpdateEducation={onUpdateEducation}
+            onAddSkill={onAddSkill}
+            onRemoveSkill={onRemoveSkill}
           />
         );
       case 'templates':
