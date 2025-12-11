@@ -172,6 +172,85 @@ export default function DashboardLayout() {
     }`;
   };
 
+  // Route to title and description mapping
+  const routeInfo: Record<string, { title: string; description: string }> = {
+    '/dashboard': {
+      title: 'AI Mentor for Brand Growth',
+      description: 'Your personal AI coach for career and brand development'
+    },
+    '/dashboard/resume-studio': {
+      title: 'Smart Resume Studio',
+      description: 'Create, customize, and optimize your resume with AI-powered tools'
+    },
+    '/dashboard/application-tailor': {
+      title: 'Application Tailor',
+      description: 'Tailor your job applications to match each position perfectly'
+    },
+    '/dashboard/ai-cover-letter': {
+      title: 'Cover Letter Generator',
+      description: 'Generate compelling cover letters tailored to each job application'
+    },
+    '/dashboard/job-finder': {
+      title: 'Job Finder',
+      description: 'Discover relevant job opportunities that match your skills and goals'
+    },
+    '/dashboard/job-tracker': {
+      title: 'Job Tracker',
+      description: 'Track and manage your job applications in one organized place'
+    },
+    '/dashboard/interview-prep': {
+      title: 'Interview Prep Kit',
+      description: 'Prepare for interviews with AI-powered practice questions and tips'
+    },
+    '/dashboard/work-history': {
+      title: 'Work History Manager',
+      description: 'Manage and organize your professional work history and experience'
+    },
+    '/dashboard/brand-audit': {
+      title: 'AI Personal Brand Audit',
+      description: 'Analyze and improve your personal brand with AI insights'
+    },
+    '/dashboard/content-engine': {
+      title: 'Content Engine',
+      description: 'Generate engaging content for your professional brand and career'
+    },
+    '/dashboard/portfolio': {
+      title: 'AI Career Portfolio',
+      description: 'Build and showcase your professional portfolio with AI assistance'
+    },
+    '/dashboard/event-scout': {
+      title: 'Career Event Scout',
+      description: 'Find and discover networking events and career opportunities'
+    },
+    '/dashboard/upskilling': {
+      title: 'Upskilling Dashboard',
+      description: 'Track your learning progress and skill development journey'
+    },
+    '/dashboard/skill-radar': {
+      title: 'Skill Radar',
+      description: 'Visualize and assess your skills to identify growth opportunities'
+    },
+    '/dashboard/learning-path': {
+      title: 'Learning Path',
+      description: 'Create personalized learning paths to achieve your career goals'
+    },
+    '/dashboard/sprints': {
+      title: 'Sprints',
+      description: 'Complete focused learning sprints to accelerate your skill development'
+    },
+    '/dashboard/certifications': {
+      title: 'Certifications',
+      description: 'Track and manage your professional certifications and credentials'
+    },
+    '/dashboard/benchmarking': {
+      title: 'Skill Benchmarking',
+      description: 'Compare your skills against industry standards and requirements'
+    }
+  };
+
+  // Get current route title and description
+  const currentRouteInfo = routeInfo[location.pathname] || routeInfo['/dashboard'];
+
   return (
     <div 
       className="flex h-screen overflow-hidden" 
@@ -507,8 +586,8 @@ export default function DashboardLayout() {
                 </svg>
               </div>
               <div className="hidden sm:block">
-                <h1 id="header-main-title" className="text-xl font-bold text-slate-900">AI Mentor for Brand Growth</h1>
-                <p id="header-subtitle" className="text-slate-600 text-xs mt-1">Your personal AI coach for career and brand development</p>
+                <h1 id="header-main-title" className="text-xl font-bold text-slate-900">{currentRouteInfo.title}</h1>
+                <p id="header-subtitle" className="text-slate-600 text-xs mt-1">{currentRouteInfo.description}</p>
               </div>
             </div>
 
