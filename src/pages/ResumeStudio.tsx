@@ -16,7 +16,7 @@ function ResumeStudioContent() {
   const { state } = useResume();
 
   return (
-    <div className="h-screen flex flex-col bg-[#dee5fb]">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50">
       {/* Header */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 no-print">
         <div className="flex items-center gap-3">
@@ -38,14 +38,14 @@ function ResumeStudioContent() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden flex bg-[#dee5fb]">
+      <main className="flex-1 overflow-hidden flex bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50">
         {/* Left Column - Editor */}
         <div className="w-96 bg-white overflow-y-auto border-r border-slate-200 no-print">
           <ResumeEditor />
         </div>
 
         {/* Right Column - Preview */}
-        <div className="flex-1 bg-[#dee5fb] overflow-y-auto p-8">
+        <div className="flex-1 bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50 overflow-y-auto p-8">
           <ResumePreview />
         </div>
 
