@@ -52,6 +52,16 @@ export default function ResumeEditorPage() {
         endDate: "Present",
         description: "Led development of a microservices architecture serving 1M+ daily active users\nReduced page load time by 40% through optimization and caching strategies\nMentored junior developers and established coding best practices"
       }
+    ],
+    education: [
+      {
+        id: "1",
+        school: "University of Technology",
+        degree: "Bachelor of Science",
+        location: "San Francisco, CA",
+        startDate: "2015",
+        endDate: "2019"
+      }
     ]
   });
 
@@ -134,6 +144,41 @@ export default function ResumeEditorPage() {
     }));
   };
 
+  // Education Handlers
+  const handleAddEducation = () => {
+    const newId = Date.now().toString();
+    setResumeData((prev) => ({
+      ...prev,
+      education: [
+        ...prev.education,
+        {
+          id: newId,
+          school: "",
+          degree: "",
+          location: "",
+          startDate: "",
+          endDate: ""
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveEducation = (id: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      education: prev.education.filter((edu) => edu.id !== id)
+    }));
+  };
+
+  const handleUpdateEducation = (id: string, field: string, value: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      education: prev.education.map((edu) =>
+        edu.id === id ? { ...edu, [field]: value } : edu
+      )
+    }));
+  };
+
   // Prepare data object for ResumeControlPanel
   const panelData: ResumeControlPanelData = {
     currentTemplateId: templateId,
@@ -191,6 +236,9 @@ export default function ResumeEditorPage() {
             onAddExperience={handleAddExperience}
             onRemoveExperience={handleRemoveExperience}
             onUpdateExperience={handleUpdateExperience}
+            onAddEducation={handleAddEducation}
+            onRemoveEducation={handleRemoveEducation}
+            onUpdateEducation={handleUpdateEducation}
           />
         </div>
 
@@ -294,12 +342,23 @@ export default function ResumeEditorPage() {
                 >
                   Education
                 </h2>
-                <div>
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-semibold text-gray-900">Bachelor of Science in Computer Science</h3>
-                    <span className="text-gray-600 text-sm">2015 - 2019</span>
-                  </div>
-                  <p className="text-gray-600 text-sm">University of Technology • GPA: 3.8/4.0</p>
+                <div className="space-y-4">
+                  {resumeData.education.map((edu) => (
+                    <div key={edu.id}>
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {edu.degree || "Degree"} {edu.school && `at ${edu.school}`}
+                        </h3>
+                        <span className="text-gray-600 text-sm">
+                          {edu.startDate && edu.endDate ? `${edu.startDate} - ${edu.endDate}` : 
+                           edu.startDate ? edu.startDate : ""}
+                        </span>
+                      </div>
+                      {edu.location && (
+                        <p className="text-gray-600 text-sm">{edu.location}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

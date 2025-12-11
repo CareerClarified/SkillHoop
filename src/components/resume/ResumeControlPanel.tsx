@@ -39,6 +39,15 @@ export interface ExperienceItem {
   description: string;
 }
 
+export interface EducationItem {
+  id: string;
+  school: string;
+  degree: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface ResumeData {
   personalInfo: {
     fullName: string;
@@ -49,6 +58,7 @@ export interface ResumeData {
   };
   summary: string;
   experience: ExperienceItem[];
+  education: EducationItem[];
 }
 
 export interface ResumeControlPanelProps {
@@ -62,6 +72,9 @@ export interface ResumeControlPanelProps {
   onAddExperience: () => void;
   onRemoveExperience: (id: string) => void;
   onUpdateExperience: (id: string, field: string, value: string) => void;
+  onAddEducation: () => void;
+  onRemoveEducation: (id: string) => void;
+  onUpdateEducation: (id: string, field: string, value: string) => void;
 }
 
 // Sections Tab Component
@@ -73,11 +86,15 @@ interface SectionsTabProps {
   onAddExperience: () => void;
   onRemoveExperience: (id: string) => void;
   onUpdateExperience: (id: string, field: string, value: string) => void;
+  onAddEducation: () => void;
+  onRemoveEducation: (id: string) => void;
+  onUpdateEducation: (id: string, field: string, value: string) => void;
 }
 
-function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience }: SectionsTabProps) {
+function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience, onAddEducation, onRemoveEducation, onUpdateEducation }: SectionsTabProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
+  const [expandedEducationId, setExpandedEducationId] = useState<string | null>(null);
 
   const handleSectionClick = (sectionId: string) => {
     if (expandedSection === sectionId) {
@@ -351,6 +368,117 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                     </button>
                   </div>
                 )}
+
+                {section.id === 'education' && (
+                  <div className="space-y-3">
+                    {/* List of Education Items */}
+                    {resumeData.education.map((edu) => {
+                      const isExpanded = expandedEducationId === edu.id;
+                      return (
+                        <div
+                          key={edu.id}
+                          className="border border-gray-200 rounded-lg overflow-hidden"
+                        >
+                          {/* Education Item Header */}
+                          <div className="flex items-center justify-between p-3 bg-gray-50">
+                            <button
+                              onClick={() => setExpandedEducationId(isExpanded ? null : edu.id)}
+                              className="flex-1 text-left"
+                            >
+                              <div className="text-sm font-medium text-gray-900">
+                                {edu.degree || "New Degree"} {edu.school && `at ${edu.school}`}
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => onRemoveEducation(edu.id)}
+                              className="ml-2 p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Expanded Form */}
+                          {isExpanded && (
+                            <div className="p-4 space-y-4 bg-white">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  School
+                                </label>
+                                <input
+                                  type="text"
+                                  value={edu.school}
+                                  onChange={(e) => onUpdateEducation(edu.id, 'school', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="University of Technology"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Degree
+                                </label>
+                                <input
+                                  type="text"
+                                  value={edu.degree}
+                                  onChange={(e) => onUpdateEducation(edu.id, 'degree', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Bachelor of Science"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                  Location
+                                </label>
+                                <input
+                                  type="text"
+                                  value={edu.location}
+                                  onChange={(e) => onUpdateEducation(edu.id, 'location', e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="San Francisco, CA"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                    Start Date
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={edu.startDate}
+                                    onChange={(e) => onUpdateEducation(edu.id, 'startDate', e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="2015"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                    End Date
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={edu.endDate}
+                                    onChange={(e) => onUpdateEducation(edu.id, 'endDate', e.target.value)}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="2019"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Add Education Button */}
+                    <button
+                      onClick={onAddEducation}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Education
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -573,6 +701,9 @@ export default function ResumeControlPanel({
   onAddExperience,
   onRemoveExperience,
   onUpdateExperience,
+  onAddEducation,
+  onRemoveEducation,
+  onUpdateEducation,
 }: ResumeControlPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('sections');
 
@@ -595,6 +726,9 @@ export default function ResumeControlPanel({
             onAddExperience={onAddExperience}
             onRemoveExperience={onRemoveExperience}
             onUpdateExperience={onUpdateExperience}
+            onAddEducation={onAddEducation}
+            onRemoveEducation={onRemoveEducation}
+            onUpdateEducation={onUpdateEducation}
           />
         );
       case 'templates':
