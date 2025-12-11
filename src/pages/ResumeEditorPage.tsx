@@ -283,6 +283,7 @@ export default function ResumeEditorPage() {
           </div>
         </div>
       </div>
+      </div>
     </div>
     </>
   );
