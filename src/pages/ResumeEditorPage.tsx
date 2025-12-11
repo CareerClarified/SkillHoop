@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Download } from 'lucide-react';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -9,6 +9,7 @@ import ResumeControlPanel, {
   FormattingValues,
   ResumeData,
 } from '../components/resume/ResumeControlPanel';
+import { calculateATSScore, ATSAnalysis } from '../utils/atsScorer';
 
 // Storage key for localStorage
 const STORAGE_KEY = 'career-clarified-resume-data';
@@ -409,10 +410,15 @@ export default function ResumeEditorPage() {
     { id: 'skills', label: 'Skills', isVisible: true },
     { id: 'certifications', label: 'Certifications', isVisible: false },
   ]);
-  const [atsScore, setAtsScore] = useState<number>(0);
   const [resumeData, setResumeData] = useState(DEFAULT_RESUME_DATA);
   const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
   const [loadingExperienceId, setLoadingExperienceId] = useState<string | null>(null);
+
+  // Calculate ATS score whenever resumeData or templateId changes
+  const atsAnalysis: ATSAnalysis = useMemo(() => {
+    const templateString = getTemplateString(templateId);
+    return calculateATSScore(resumeData, templateString);
+  }, [resumeData, templateId]);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -474,9 +480,10 @@ export default function ResumeEditorPage() {
 
   const handleAIAction = (action: string) => {
     console.log('AI Action triggered:', action);
-    // Simulate ATS score update (in real app, this would call an API)
+    // ATS score is now calculated automatically based on resume data
     if (action === 'ats') {
-      setAtsScore(85); // Mock score after optimization
+      // Could trigger additional optimization logic here if needed
+      console.log('ATS optimization requested. Current score:', atsAnalysis.score);
     }
   };
 
@@ -757,7 +764,8 @@ export default function ResumeEditorPage() {
     currentTemplateId: templateId,
     formatting,
     sections,
-    atsScore,
+    atsScore: atsAnalysis.score,
+    atsAnalysis, // Pass the full analysis object
   };
 
   // Calculate line-height from lineSpacing

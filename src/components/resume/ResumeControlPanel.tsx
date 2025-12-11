@@ -38,11 +38,14 @@ export interface FormattingValues {
   accentColor: string;
 }
 
+import { ATSAnalysis } from '../../utils/atsScorer';
+
 export interface ResumeControlPanelData {
   currentTemplateId: number | string | null;
   formatting: FormattingValues;
   sections: Section[];
   atsScore: number;
+  atsAnalysis?: ATSAnalysis;
 }
 
 export interface ExperienceItem {
@@ -911,26 +914,95 @@ function FormattingTab({ values, onChange }: FormattingTabProps) {
 // AI Copilot Tab Component
 interface AICopilotTabProps {
   atsScore: number;
+  atsAnalysis?: ATSAnalysis;
   onAIAction: (action: string) => void;
   onAIGenerate?: () => void;
   isGeneratingAI?: boolean;
 }
 
-function AICopilotTab({ atsScore, onAIAction, onAIGenerate, isGeneratingAI }: AICopilotTabProps) {
+function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGeneratingAI }: AICopilotTabProps) {
   const actions = [
     { id: 'ats', label: 'ATS Optimization', icon: <FileText className="w-4 h-4" /> },
     { id: 'enhance', label: 'Enhance Text', icon: <Sparkles className="w-4 h-4" /> },
     { id: 'gap', label: 'Gap Justification', icon: <Plus className="w-4 h-4" /> },
   ];
 
+  // Determine score color based on value
+  const getScoreColor = () => {
+    if (atsScore < 50) {
+      return 'text-red-600';
+    } else if (atsScore >= 80) {
+      return 'text-green-600';
+    } else {
+      return 'text-yellow-600';
+    }
+  };
+
+  const getScoreBgColor = () => {
+    if (atsScore < 50) {
+      return 'bg-red-50 border-red-200';
+    } else if (atsScore >= 80) {
+      return 'bg-green-50 border-green-200';
+    } else {
+      return 'bg-yellow-50 border-yellow-200';
+    }
+  };
+
+  const getProgressBarColor = () => {
+    if (atsScore < 50) {
+      return 'bg-red-500';
+    } else if (atsScore >= 80) {
+      return 'bg-green-500';
+    } else {
+      return 'bg-yellow-500';
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* ATS Score Card */}
-      <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+      <div className={`p-6 bg-gradient-to-br border rounded-lg ${getScoreBgColor()}`}>
         <div className="text-sm text-gray-600 mb-2">ATS Score</div>
-        <div className="text-4xl font-bold text-blue-600 mb-1">{atsScore}%</div>
-        <div className="text-xs text-gray-500">Run optimization to improve</div>
+        <div className={`text-4xl font-bold mb-2 ${getScoreColor()}`}>{atsScore}%</div>
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
+          <div
+            className={`h-full ${getProgressBarColor()} transition-all duration-300`}
+            style={{ width: `${atsScore}%` }}
+          />
+        </div>
+        
+        <div className="text-xs text-gray-500">
+          {atsScore < 50
+            ? 'Your resume needs improvement to pass ATS filters'
+            : atsScore >= 80
+            ? 'Your resume is well-optimized for ATS systems'
+            : 'Your resume is getting there, but could be improved'}
+        </div>
       </div>
+
+      {/* Suggestions List */}
+      {atsAnalysis && atsAnalysis.suggestions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-gray-900">Improvement Suggestions</h3>
+          <div className="space-y-2">
+            {atsAnalysis.suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-2 p-3 bg-white border border-gray-200 rounded-lg"
+              >
+                <div className="mt-0.5 flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-gray-400" />
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 flex-1">{suggestion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Enhance Summary with AI Button */}
       {onAIGenerate && (
@@ -1035,7 +1107,7 @@ export default function ResumeControlPanel({
       case 'formatting':
         return <FormattingTab values={data.formatting} onChange={onFormattingChange} />;
       case 'copilot':
-        return <AICopilotTab atsScore={data.atsScore} onAIAction={onAIAction} onAIGenerate={onAIGenerate} isGeneratingAI={isGeneratingAI} />;
+        return <AICopilotTab atsScore={data.atsScore} atsAnalysis={data.atsAnalysis} onAIAction={onAIAction} onAIGenerate={onAIGenerate} isGeneratingAI={isGeneratingAI} />;
       default:
         return null;
     }
