@@ -91,9 +91,16 @@ export default function ResumeEditorPage() {
           }
         }
       `}</style>
-      <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
+      <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50 relative">
+        {/* Decorative Abstract Circles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl"></div>
+          <div className="absolute top-40 right-20 w-80 h-80 bg-teal-300/30 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-indigo-300/30 rounded-full blur-3xl"></div>
+        </div>
+        
         {/* Page Header with Download Button */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 print:hidden">
+        <header className="h-16 bg-white/70 backdrop-blur-sm border-b border-white/20 flex items-center justify-between px-6 shrink-0 print:hidden relative z-10 shadow-sm">
         <h1 className="text-xl font-semibold text-gray-900">Resume Editor</h1>
         <button
           onClick={handlePrint}
@@ -107,7 +114,7 @@ export default function ResumeEditorPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Side - Control Panel */}
-        <div className="w-96 shrink-0 border-r border-gray-200 bg-white print:hidden">
+        <div className="w-96 shrink-0 print:hidden relative z-10">
           <ResumeControlPanel
             data={panelData}
             onTemplateChange={handleTemplateChange}
@@ -118,7 +125,7 @@ export default function ResumeEditorPage() {
         </div>
 
         {/* Right Side - Live Preview */}
-        <div className="flex-1 overflow-y-auto bg-gray-100 p-8 print:p-0 print:bg-white print:overflow-visible">
+        <div className="flex-1 overflow-y-auto p-8 print:p-0 print:bg-white print:overflow-visible relative z-10">
           <div className="max-w-4xl mx-auto">
             {/* Preview Header */}
             <div className="mb-6 print:hidden">
