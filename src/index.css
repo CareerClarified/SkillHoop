@@ -57,6 +57,11 @@ aside:hover nav.custom-scrollbar::-webkit-scrollbar-thumb {
 aside {
     transition: width 0.3s ease-in-out;
 }
+
+/* Sidebar background color for light mode */
+html:not(.dark) aside {
+    background-color: #f9f8ff !important;
+}
 .sidebar-link.active {
     background-color: #4f46e5; /* indigo-600 */
     color: #ffffff;
