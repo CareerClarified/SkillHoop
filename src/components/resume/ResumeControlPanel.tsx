@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2, X, Wand2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2, X, Wand2, Loader2, Info, CheckCircle2, Copy } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -918,14 +918,186 @@ interface AICopilotTabProps {
   onAIAction: (action: string) => void;
   onAIGenerate?: () => void;
   isGeneratingAI?: boolean;
+  resumeData: ResumeData;
 }
 
-function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGeneratingAI }: AICopilotTabProps) {
-  const actions = [
-    { id: 'ats', label: 'ATS Optimization', icon: <FileText className="w-4 h-4" /> },
-    { id: 'enhance', label: 'Enhance Text', icon: <Sparkles className="w-4 h-4" /> },
-    { id: 'gap', label: 'Gap Justification', icon: <Plus className="w-4 h-4" /> },
-  ];
+interface CareerGap {
+  gapStartDate: string;
+  gapEndDate: string;
+  previousJobTitle: string;
+  nextJobTitle: string;
+  durationMonths: number;
+  formattedStart: string;
+  formattedEnd: string;
+}
+
+// Helper function to parse date string to Date object
+function parseDate(dateStr: string): Date | null {
+  if (!dateStr || dateStr.toLowerCase() === 'present' || dateStr.toLowerCase() === 'current') {
+    return new Date(); // Use current date for "Present"
+  }
+  
+  // Try to parse various date formats
+  // Format: "YYYY", "MM/YYYY", "YYYY-MM", "Month YYYY"
+  const cleaned = dateStr.trim();
+  
+  // Try "YYYY" format
+  if (/^\d{4}$/.test(cleaned)) {
+    return new Date(parseInt(cleaned), 0, 1);
+  }
+  
+  // Try "MM/YYYY" or "MM-YYYY"
+  const slashMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{4})$/);
+  if (slashMatch) {
+    return new Date(parseInt(slashMatch[2]), parseInt(slashMatch[1]) - 1, 1);
+  }
+  
+  // Try "YYYY-MM"
+  const dashMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
+  if (dashMatch) {
+    return new Date(parseInt(dashMatch[1]), parseInt(dashMatch[2]) - 1, 1);
+  }
+  
+  // Try "Month YYYY" format
+  const monthMatch = cleaned.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (monthMatch) {
+    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthIndex = monthNames.findIndex(m => m.startsWith(monthMatch[1].toLowerCase()));
+    if (monthIndex !== -1) {
+      return new Date(parseInt(monthMatch[2]), monthIndex, 1);
+    }
+  }
+  
+  // Try standard Date parsing
+  const parsed = new Date(cleaned);
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  
+  return null;
+}
+
+// Helper function to format date for display
+function formatDateForDisplay(date: Date): string {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// Helper function to calculate months between two dates
+function monthsBetween(date1: Date, date2: Date): number {
+  const years = date2.getFullYear() - date1.getFullYear();
+  const months = date2.getMonth() - date1.getMonth();
+  return years * 12 + months;
+}
+
+// Helper function to find career gaps
+function findCareerGaps(experience: ExperienceItem[]): CareerGap[] {
+  const gaps: CareerGap[] = [];
+  
+  if (experience.length < 2) {
+    return gaps; // Need at least 2 jobs to have gaps
+  }
+  
+  // Sort experience by start date (most recent first)
+  // This ensures we compare the end of a later job with the start of an earlier job
+  const sortedExperience = [...experience].sort((a, b) => {
+    const aStart = parseDate(a.startDate);
+    const bStart = parseDate(b.startDate);
+    
+    if (!aStart && !bStart) return 0;
+    if (!aStart) return 1; // Missing start date goes later
+    if (!bStart) return -1;
+    
+    return bStart.getTime() - aStart.getTime(); // Descending (most recent first)
+  });
+  
+  // Check for gaps between consecutive jobs
+  for (let i = 0; i < sortedExperience.length - 1; i++) {
+    const laterJob = sortedExperience[i]; // More recent job
+    const earlierJob = sortedExperience[i + 1]; // Older job
+    
+    const earlierJobEnd = parseDate(earlierJob.endDate);
+    const laterJobStart = parseDate(laterJob.startDate);
+    
+    // Skip if we can't parse dates
+    if (!earlierJobEnd || !laterJobStart) continue;
+    
+    // Calculate gap duration: time between end of earlier job and start of later job
+    const gapMonths = monthsBetween(earlierJobEnd, laterJobStart);
+    
+    // If gap is more than 3 months, record it
+    if (gapMonths > 3) {
+      gaps.push({
+        gapStartDate: earlierJob.endDate,
+        gapEndDate: laterJob.startDate,
+        previousJobTitle: earlierJob.jobTitle || 'Previous Position',
+        nextJobTitle: laterJob.jobTitle || 'Next Position',
+        durationMonths: gapMonths,
+        formattedStart: formatDateForDisplay(earlierJobEnd),
+        formattedEnd: formatDateForDisplay(laterJobStart),
+      });
+    }
+  }
+  
+  return gaps;
+}
+
+function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGeneratingAI, resumeData }: AICopilotTabProps) {
+  const [gaps, setGaps] = useState<CareerGap[]>([]);
+  const [gapExplanations, setGapExplanations] = useState<Record<string, string>>({});
+  const [loadingGapId, setLoadingGapId] = useState<string | null>(null);
+
+  // Calculate gaps when experience data changes
+  useEffect(() => {
+    const detectedGaps = findCareerGaps(resumeData.experience);
+    setGaps(detectedGaps);
+  }, [resumeData.experience]);
+
+  // Function to generate gap explanation
+  const handleGenerateExplanation = async (gap: CareerGap) => {
+    const gapId = `${gap.gapStartDate}-${gap.gapEndDate}`;
+    setLoadingGapId(gapId);
+    
+    try {
+      const response = await fetch('/api/explain-gap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gapStartDate: gap.gapStartDate,
+          gapEndDate: gap.gapEndDate,
+          previousJobTitle: gap.previousJobTitle,
+          nextJobTitle: gap.nextJobTitle,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate explanation');
+      }
+
+      const data = await response.json();
+      setGapExplanations(prev => ({
+        ...prev,
+        [gapId]: data.explanation,
+      }));
+    } catch (error) {
+      console.error('Error generating gap explanation:', error);
+      alert('Failed to generate explanation. Please try again.');
+    } finally {
+      setLoadingGapId(null);
+    }
+  };
+
+  // Function to copy explanation to clipboard
+  const handleCopyExplanation = (explanation: string) => {
+    navigator.clipboard.writeText(explanation).then(() => {
+      alert('Explanation copied to clipboard!');
+    }).catch((err) => {
+      console.error('Failed to copy:', err);
+      alert('Failed to copy to clipboard');
+    });
+  };
 
   // Determine score color based on value
   const getScoreColor = () => {
@@ -1028,18 +1200,85 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Enhance Text Info Card */}
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm text-blue-900">
+            Want to rewrite your experience? Go to the Experience tab and click the 'Magic Wand' icon next to any job description.
+          </p>
+        </div>
+      </div>
+
+      {/* Gap Justification Section */}
       <div className="space-y-3">
-        {actions.map((action) => (
-          <button
-            key={action.id}
-            onClick={() => onAIAction(action.id)}
-            className="w-full flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
-          >
-            <div className="text-gray-600">{action.icon}</div>
-            <span className="text-sm font-medium text-gray-900">{action.label}</span>
-          </button>
-        ))}
+        <h3 className="text-sm font-semibold text-gray-900">Gap Justification</h3>
+        
+        {gaps.length === 0 ? (
+          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-green-900">No career gaps detected!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {gaps.map((gap, index) => {
+              const gapId = `${gap.gapStartDate}-${gap.gapEndDate}`;
+              const explanation = gapExplanations[gapId];
+              const isLoading = loadingGapId === gapId;
+              
+              return (
+                <div key={index} className="p-4 bg-white border border-gray-200 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Gap: {gap.formattedStart} - {gap.formattedEnd}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {gap.durationMonths} months • From {gap.previousJobTitle} to {gap.nextJobTitle}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateExplanation(gap)}
+                      disabled={isLoading}
+                      className="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-3.5 h-3.5" />
+                          <span>Generate Explanation</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {explanation && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="text-xs font-medium text-gray-700">Generated Explanation:</p>
+                        <button
+                          onClick={() => handleCopyExplanation(explanation)}
+                          className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
+                        </button>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="text-sm text-gray-700 leading-relaxed">{explanation}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1107,7 +1346,7 @@ export default function ResumeControlPanel({
       case 'formatting':
         return <FormattingTab values={data.formatting} onChange={onFormattingChange} />;
       case 'copilot':
-        return <AICopilotTab atsScore={data.atsScore} atsAnalysis={data.atsAnalysis} onAIAction={onAIAction} onAIGenerate={onAIGenerate} isGeneratingAI={isGeneratingAI} />;
+        return <AICopilotTab atsScore={data.atsScore} atsAnalysis={data.atsAnalysis} onAIAction={onAIAction} onAIGenerate={onAIGenerate} isGeneratingAI={isGeneratingAI} resumeData={resumeData} />;
       default:
         return null;
     }
