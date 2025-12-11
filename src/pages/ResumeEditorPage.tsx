@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Download } from 'lucide-react';
 import ResumeControlPanel, {
@@ -6,6 +6,43 @@ import ResumeControlPanel, {
   Section,
   FormattingValues,
 } from '../components/resume/ResumeControlPanel';
+
+// Storage key for localStorage
+const STORAGE_KEY = 'career-clarified-resume-data';
+
+// Default resume data structure
+const DEFAULT_RESUME_DATA = {
+  personalInfo: {
+    fullName: "Your Name",
+    jobTitle: "Product Designer",
+    email: "hello@example.com",
+    phone: "+1 234 567 890",
+    location: "San Francisco, CA"
+  },
+  summary: "Passionate designer with 5+ years of experience...",
+  experience: [
+    {
+      id: "1",
+      jobTitle: "Senior Software Engineer",
+      company: "Tech Company Inc.",
+      location: "San Francisco, CA",
+      startDate: "2021",
+      endDate: "Present",
+      description: "Led development of a microservices architecture serving 1M+ daily active users\nReduced page load time by 40% through optimization and caching strategies\nMentored junior developers and established coding best practices"
+    }
+  ],
+  education: [
+    {
+      id: "1",
+      school: "University of Technology",
+      degree: "Bachelor of Science",
+      location: "San Francisco, CA",
+      startDate: "2015",
+      endDate: "2019"
+    }
+  ],
+  skills: ["JavaScript", "React", "Node.js", "Product Management"]
+};
 
 export default function ResumeEditorPage() {
   // Ref for PDF printing
@@ -33,38 +70,30 @@ export default function ResumeEditorPage() {
     { id: 'certifications', label: 'Certifications', isVisible: false },
   ]);
   const [atsScore, setAtsScore] = useState<number>(0);
-  const [resumeData, setResumeData] = useState({
-    personalInfo: {
-      fullName: "Your Name",
-      jobTitle: "Product Designer",
-      email: "hello@example.com",
-      phone: "+1 234 567 890",
-      location: "San Francisco, CA"
-    },
-    summary: "Passionate designer with 5+ years of experience...",
-    experience: [
-      {
-        id: "1",
-        jobTitle: "Senior Software Engineer",
-        company: "Tech Company Inc.",
-        location: "San Francisco, CA",
-        startDate: "2021",
-        endDate: "Present",
-        description: "Led development of a microservices architecture serving 1M+ daily active users\nReduced page load time by 40% through optimization and caching strategies\nMentored junior developers and established coding best practices"
+  const [resumeData, setResumeData] = useState(DEFAULT_RESUME_DATA);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setResumeData(parsedData);
       }
-    ],
-    education: [
-      {
-        id: "1",
-        school: "University of Technology",
-        degree: "Bachelor of Science",
-        location: "San Francisco, CA",
-        startDate: "2015",
-        endDate: "2019"
-      }
-    ],
-    skills: ["JavaScript", "React", "Node.js", "Product Management"]
-  });
+    } catch (error) {
+      console.error('Failed to load resume data from localStorage:', error);
+      // If there's an error parsing, fall back to default data
+    }
+  }, []);
+
+  // Auto-save data to localStorage whenever resumeData changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(resumeData));
+    } catch (error) {
+      console.error('Failed to save resume data to localStorage:', error);
+    }
+  }, [resumeData]);
 
   // Handler Functions
   const handleContentChange = (path: string, value: string) => {
@@ -231,13 +260,16 @@ export default function ResumeEditorPage() {
         {/* Page Header with Download Button */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 print:hidden">
         <h1 className="text-xl font-semibold text-gray-900">Resume Editor</h1>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow-md"
-        >
-          <Download className="w-4 h-4" />
-          Download PDF
-        </button>
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-gray-500">All changes saved</span>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow-md"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
