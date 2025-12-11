@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Download } from 'lucide-react';
 import ResumeControlPanel, {
   ResumeControlPanelData,
   Section,
@@ -6,6 +8,15 @@ import ResumeControlPanel, {
 } from '../components/resume/ResumeControlPanel';
 
 export default function ResumeEditorPage() {
+  // Ref for PDF printing
+  const resumePreviewRef = useRef<HTMLDivElement>(null);
+
+  // Print handler
+  const handlePrint = useReactToPrint({
+    contentRef: resumePreviewRef,
+    documentTitle: 'My_Resume',
+  });
+
   // State Management
   const [templateId, setTemplateId] = useState<number | null>(2); // Default to template ID 2 (Tech Modern)
   const [formatting, setFormatting] = useState<FormattingValues>({
@@ -63,37 +74,69 @@ export default function ResumeEditorPage() {
   const lineHeight = formatting.lineSpacing;
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-100">
-      {/* Left Side - Control Panel */}
-      <div className="w-96 shrink-0 border-r border-gray-200 bg-white">
-        <ResumeControlPanel
-          data={panelData}
-          onTemplateChange={handleTemplateChange}
-          onFormattingChange={handleFormattingChange}
-          onSectionToggle={handleSectionToggle}
-          onAIAction={handleAIAction}
-        />
-      </div>
+    <>
+      <style>{`
+        @media print {
+          /* Ensure resume container takes full viewport and removes background */
+          body {
+            margin: 0;
+            padding: 0;
+            background: white;
+          }
+          
+          /* Ensure the main container doesn't limit print area */
+          html, body {
+            height: auto;
+            overflow: visible;
+          }
+        }
+      `}</style>
+      <div className="h-screen flex flex-col overflow-hidden bg-gray-100">
+        {/* Page Header with Download Button */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 print:hidden">
+        <h1 className="text-xl font-semibold text-gray-900">Resume Editor</h1>
+        <button
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow-md"
+        >
+          <Download className="w-4 h-4" />
+          Download PDF
+        </button>
+      </header>
 
-      {/* Right Side - Live Preview */}
-      <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Preview Header */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-700">Live Preview</h2>
-            <p className="text-sm text-gray-500">See your changes in real-time</p>
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Side - Control Panel */}
+        <div className="w-96 shrink-0 border-r border-gray-200 bg-white print:hidden">
+          <ResumeControlPanel
+            data={panelData}
+            onTemplateChange={handleTemplateChange}
+            onFormattingChange={handleFormattingChange}
+            onSectionToggle={handleSectionToggle}
+            onAIAction={handleAIAction}
+          />
+        </div>
 
-          {/* Dummy Resume Paper */}
-          <div
-            className="bg-white shadow-xl rounded-lg p-8 mx-auto"
-            style={{
-              fontFamily: formatting.font,
-              lineHeight: lineHeight,
-              minHeight: '800px',
-              maxWidth: '8.5in',
-            }}
-          >
+        {/* Right Side - Live Preview */}
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-8 print:p-0 print:bg-white print:overflow-visible">
+          <div className="max-w-4xl mx-auto">
+            {/* Preview Header */}
+            <div className="mb-6 print:hidden">
+              <h2 className="text-lg font-semibold text-gray-700">Live Preview</h2>
+              <p className="text-sm text-gray-500">See your changes in real-time</p>
+            </div>
+
+            {/* Dummy Resume Paper */}
+            <div
+              ref={resumePreviewRef}
+              className="bg-white shadow-xl rounded-lg p-8 mx-auto print:shadow-none print:rounded-none print:p-8 print:m-0 print:max-w-full print:w-full"
+              style={{
+                fontFamily: formatting.font,
+                lineHeight: lineHeight,
+                minHeight: '800px',
+                maxWidth: '8.5in',
+              }}
+            >
             {/* Header Section */}
             <div
               className="mb-6 pb-4 border-b-2"
@@ -241,6 +284,7 @@ export default function ResumeEditorPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
