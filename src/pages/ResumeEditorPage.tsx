@@ -33,8 +33,33 @@ export default function ResumeEditorPage() {
     { id: 'certifications', label: 'Certifications', isVisible: false },
   ]);
   const [atsScore, setAtsScore] = useState<number>(0);
+  const [resumeData, setResumeData] = useState({
+    personalInfo: {
+      fullName: "Your Name",
+      jobTitle: "Product Designer",
+      email: "hello@example.com",
+      phone: "+1 234 567 890",
+      location: "San Francisco, CA"
+    },
+    summary: "Passionate designer with 5+ years of experience..."
+  });
 
   // Handler Functions
+  const handleContentChange = (path: string, value: string) => {
+    setResumeData((prev) => {
+      const keys = path.split('.');
+      const newData = { ...prev };
+      let current: any = newData;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        current[keys[i]] = { ...current[keys[i]] };
+        current = current[keys[i]];
+      }
+      
+      current[keys[keys.length - 1]] = value;
+      return newData;
+    });
+  };
   const handleFormattingChange = (key: string, value: string | number) => {
     setFormatting((prev) => ({
       ...prev,
@@ -110,10 +135,12 @@ export default function ResumeEditorPage() {
         <div className="w-96 shrink-0 border-r border-gray-200 bg-white print:hidden">
           <ResumeControlPanel
             data={panelData}
+            resumeData={resumeData}
             onTemplateChange={handleTemplateChange}
             onFormattingChange={handleFormattingChange}
             onSectionToggle={handleSectionToggle}
             onAIAction={handleAIAction}
+            onContentChange={handleContentChange}
           />
         </div>
 
@@ -138,22 +165,24 @@ export default function ResumeEditorPage() {
               }}
             >
             {/* Header Section */}
-            <div
-              className="mb-6 pb-4 border-b-2"
-              style={{ borderColor: formatting.accentColor }}
-            >
-              <h1
-                className="text-3xl font-bold mb-2"
-                style={{ color: formatting.accentColor }}
+            {sections.find((s) => s.id === 'heading')?.isVisible && (
+              <div
+                className="mb-6 pb-4 border-b-2"
+                style={{ borderColor: formatting.accentColor }}
               >
-                John Doe
-              </h1>
-              <div className="text-gray-600 space-y-1">
-                <p>Software Engineer</p>
-                <p>john.doe@email.com • (555) 123-4567</p>
-                <p>linkedin.com/in/johndoe • johndoe.com</p>
+                <h1
+                  className="text-3xl font-bold mb-2"
+                  style={{ color: formatting.accentColor }}
+                >
+                  {resumeData.personalInfo.fullName}
+                </h1>
+                <div className="text-gray-600 space-y-1">
+                  <p>{resumeData.personalInfo.jobTitle}</p>
+                  <p>{resumeData.personalInfo.email} • {resumeData.personalInfo.phone}</p>
+                  <p>{resumeData.personalInfo.location}</p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Professional Summary */}
             {sections.find((s) => s.id === 'profile')?.isVisible && (
@@ -164,11 +193,8 @@ export default function ResumeEditorPage() {
                 >
                   Professional Summary
                 </h2>
-                <p className="text-gray-700">
-                  Experienced software engineer with 5+ years of expertise in full-stack
-                  development. Proven track record of building scalable web applications
-                  using modern technologies. Passionate about clean code, user experience,
-                  and continuous learning.
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {resumeData.summary}
                 </p>
               </div>
             )}

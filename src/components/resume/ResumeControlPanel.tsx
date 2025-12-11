@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, Sparkles, FileText, Plus } from 'lucide-react';
+import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff } from 'lucide-react';
 
 type TabId = 'sections' | 'templates' | 'formatting' | 'copilot';
 
@@ -29,49 +29,192 @@ export interface ResumeControlPanelData {
   atsScore: number;
 }
 
+export interface ResumeData {
+  personalInfo: {
+    fullName: string;
+    jobTitle: string;
+    email: string;
+    phone: string;
+    location: string;
+  };
+  summary: string;
+}
+
 export interface ResumeControlPanelProps {
   data: ResumeControlPanelData;
+  resumeData: ResumeData;
   onTemplateChange: (id: number) => void;
   onFormattingChange: (key: string, value: string | number) => void;
   onSectionToggle: (id: string) => void;
   onAIAction: (action: string) => void;
+  onContentChange: (path: string, value: string) => void;
 }
 
 // Sections Tab Component
 interface SectionsTabProps {
   sections: Section[];
+  resumeData: ResumeData;
   onToggle: (id: string) => void;
+  onContentChange: (path: string, value: string) => void;
 }
 
-function SectionsTab({ sections, onToggle }: SectionsTabProps) {
+function SectionsTab({ sections, resumeData, onToggle, onContentChange }: SectionsTabProps) {
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  const handleSectionClick = (sectionId: string) => {
+    if (expandedSection === sectionId) {
+      setExpandedSection(null);
+    } else {
+      setExpandedSection(sectionId);
+    }
+  };
+
+  const handleVisibilityToggle = (e: React.MouseEvent, sectionId: string) => {
+    e.stopPropagation();
+    onToggle(sectionId);
+  };
+
   return (
     <div className="p-6 space-y-3">
-      {sections.map((section) => (
-        <div
-          key={section.id}
-          className={`flex items-center gap-3 p-4 bg-white border rounded-lg hover:border-gray-300 transition-colors ${
-            section.isVisible ? 'border-gray-200' : 'border-gray-100 opacity-60'
-          }`}
-        >
-          {/* Drag Handle */}
-          <div className="text-gray-400 cursor-grab active:cursor-grabbing">
-            <GripVertical className="w-5 h-5" />
-          </div>
-          
-          {/* Section Name */}
-          <div className="flex-1 text-sm font-medium text-gray-900">
-            {section.label}
-          </div>
-          
-          {/* Toggle/Edit Icon */}
-          <button 
-            onClick={() => onToggle(section.id)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+      {sections.map((section) => {
+        const isExpanded = expandedSection === section.id;
+        const isVisible = section.isVisible;
+
+        return (
+          <div
+            key={section.id}
+            className={`bg-white border rounded-lg transition-all ${
+              isVisible ? 'border-gray-200' : 'border-gray-100 opacity-60'
+            } ${isExpanded ? 'shadow-md' : 'hover:border-gray-300'}`}
           >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      ))}
+            {/* Section Header */}
+            <div
+              className="flex items-center gap-3 p-4 cursor-pointer"
+              onClick={() => handleSectionClick(section.id)}
+            >
+              {/* Drag Handle */}
+              <div 
+                className="text-gray-400 cursor-grab active:cursor-grabbing"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="w-5 h-5" />
+              </div>
+              
+              {/* Section Name */}
+              <div className="flex-1 text-sm font-medium text-gray-900">
+                {section.label}
+              </div>
+              
+              {/* Visibility Toggle */}
+              <button
+                onClick={(e) => handleVisibilityToggle(e, section.id)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                title={isVisible ? 'Hide section' : 'Show section'}
+              >
+                {isVisible ? (
+                  <Eye className="w-4 h-4" />
+                ) : (
+                  <EyeOff className="w-4 h-4" />
+                )}
+              </button>
+              
+              {/* Expand/Collapse Icon */}
+              <div className="text-gray-400">
+                {isExpanded ? (
+                  <ChevronDown className="w-5 h-5" />
+                ) : (
+                  <ChevronRight className="w-5 h-5" />
+                )}
+              </div>
+            </div>
+
+            {/* Expanded Form Content */}
+            {isExpanded && (
+              <div className="px-4 pb-4 border-t border-gray-100 pt-4">
+                {section.id === 'heading' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={resumeData.personalInfo.fullName}
+                        onChange={(e) => onContentChange('personalInfo.fullName', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Your Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Job Title
+                      </label>
+                      <input
+                        type="text"
+                        value={resumeData.personalInfo.jobTitle}
+                        onChange={(e) => onContentChange('personalInfo.jobTitle', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Product Designer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={resumeData.personalInfo.email}
+                        onChange={(e) => onContentChange('personalInfo.email', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="hello@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={resumeData.personalInfo.phone}
+                        onChange={(e) => onContentChange('personalInfo.phone', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+1 234 567 890"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={resumeData.personalInfo.location}
+                        onChange={(e) => onContentChange('personalInfo.location', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="San Francisco, CA"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {section.id === 'profile' && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Professional Summary
+                    </label>
+                    <textarea
+                      value={resumeData.summary}
+                      onChange={(e) => onContentChange('summary', e.target.value)}
+                      rows={8}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Passionate designer with 5+ years of experience..."
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -280,10 +423,12 @@ function AICopilotTab({ atsScore, onAIAction }: AICopilotTabProps) {
 
 export default function ResumeControlPanel({
   data,
+  resumeData,
   onTemplateChange,
   onFormattingChange,
   onSectionToggle,
   onAIAction,
+  onContentChange,
 }: ResumeControlPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('sections');
 
@@ -297,7 +442,14 @@ export default function ResumeControlPanel({
   const renderTabContent = () => {
     switch (activeTab) {
       case 'sections':
-        return <SectionsTab sections={data.sections} onToggle={onSectionToggle} />;
+        return (
+          <SectionsTab
+            sections={data.sections}
+            resumeData={resumeData}
+            onToggle={onSectionToggle}
+            onContentChange={onContentChange}
+          />
+        );
       case 'templates':
         return <TemplatesTab currentTemplateId={data.currentTemplateId} onSelect={onTemplateChange} />;
       case 'formatting':
