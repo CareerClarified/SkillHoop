@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2 } from 'lucide-react';
+import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2, History } from 'lucide-react';
 import { useResume } from '../../context/ResumeContext';
 import { INITIAL_RESUME_STATE } from '../../types/resume';
 import { saveResume, getCurrentResumeId, type SavedResume } from '../../lib/resumeStorage';
+import { type ResumeVersion } from '../../lib/resumeVersionHistory';
 import SaveResumeModal from './SaveResumeModal';
 import ResumeLibrary from './ResumeLibrary';
 import ExportModal from './ExportModal';
+import VersionHistoryModal from './VersionHistoryModal';
 
 export default function ResumeToolbar() {
   const { state, dispatch } = useResume();
@@ -14,6 +16,7 @@ export default function ResumeToolbar() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
 
   useEffect(() => {
     setCurrentResumeId(getCurrentResumeId());
@@ -53,6 +56,28 @@ export default function ResumeToolbar() {
     setShowLibrary(false);
   };
 
+  const handleRestoreVersion = (version: ResumeVersion) => {
+    // Create a new version before restoring (so we can undo)
+    try {
+      const { saveVersion } = require('../../lib/resumeVersionHistory');
+      saveVersion(version.resumeId, state, {
+        createdBy: 'restore-backup',
+        changeSummary: 'Backup before restoring version',
+      });
+    } catch (error) {
+      console.error('Error creating backup before restore:', error);
+    }
+
+    // Restore the version
+    dispatch({
+      type: 'SET_RESUME',
+      payload: version.data,
+    });
+    
+    // Save the restored version
+    saveResume(version.data);
+  };
+
   const handleExport = () => {
     setShowExportModal(true);
   };
@@ -84,6 +109,18 @@ export default function ResumeToolbar() {
           <FileText className="w-4 h-4" />
           <span>My Resumes</span>
         </button>
+
+        {/* Version History Button */}
+        {currentResumeId && (
+          <button
+            onClick={() => setShowVersionHistory(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 hover:border-slate-400 transition-colors"
+            title="View version history"
+          >
+            <History className="w-4 h-4" />
+            <span>History</span>
+          </button>
+        )}
 
         {/* Save Button - Secondary */}
         <button
@@ -162,6 +199,17 @@ export default function ResumeToolbar() {
         onClose={() => setShowExportModal(false)}
         resume={state}
       />
+
+      {/* Version History Modal */}
+      {currentResumeId && (
+        <VersionHistoryModal
+          isOpen={showVersionHistory}
+          onClose={() => setShowVersionHistory(false)}
+          resumeId={currentResumeId}
+          currentResume={state}
+          onRestore={handleRestoreVersion}
+        />
+      )}
     </>
   );
 }
