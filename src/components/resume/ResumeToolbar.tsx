@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2, Clock, BarChart3, X, Target, ChevronDown } from 'lucide-react';
+import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2, Clock, BarChart3, X, Target, ChevronDown, Upload } from 'lucide-react';
 import { useResume } from '../../context/ResumeContext';
 import { INITIAL_RESUME_STATE, type ResumeData } from '../../types/resume';
 import { saveResume, getCurrentResumeId, type SavedResume } from '../../lib/resumeStorage';
@@ -9,6 +9,7 @@ import ResumeLibrary from './ResumeLibrary';
 import ExportModal from './ExportModal';
 import VersionHistoryPanel from './VersionHistoryPanel';
 import ResumeAnalytics from './ResumeAnalytics';
+import ImportModal from './ImportModal';
 
 interface JobApplication {
   id: string;
@@ -26,6 +27,7 @@ export default function ResumeToolbar() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   
   // Target Job state
   const [jobs, setJobs] = useState<JobApplication[]>([]);
@@ -167,6 +169,32 @@ export default function ResumeToolbar() {
     dispatch({ type: 'TOGGLE_AI_SIDEBAR' });
   };
 
+  const handleImport = (importedData: Partial<ResumeData>) => {
+    // Merge imported data with current state, preserving settings and other metadata
+    const mergedData: ResumeData = {
+      ...state,
+      // Apply imported data
+      ...importedData,
+      // Preserve important metadata that shouldn't be overwritten
+      id: state.id,
+      title: state.title || importedData.title || 'Untitled Resume',
+      settings: state.settings, // Keep current formatting settings
+      updatedAt: new Date().toISOString(),
+      // Use imported sections if available, otherwise keep current
+      sections: importedData.sections || state.sections,
+      // Merge personal info (imported data takes precedence but fill in missing fields)
+      personalInfo: {
+        ...state.personalInfo,
+        ...(importedData.personalInfo || {}),
+      },
+    };
+
+    dispatch({
+      type: 'SET_RESUME',
+      payload: mergedData,
+    });
+  };
+
   const isUpdating = currentResumeId !== null;
 
   return (
@@ -246,6 +274,16 @@ export default function ResumeToolbar() {
         >
           <FileText className="w-4 h-4" />
           <span>My Resumes</span>
+        </button>
+
+        {/* Import Button */}
+        <button
+          onClick={() => setShowImportModal(true)}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 hover:border-slate-400 transition-colors"
+          title="Import resume from text or file"
+        >
+          <Upload className="w-4 h-4" />
+          <span>Import</span>
         </button>
 
         {/* Version History Button */}
@@ -389,6 +427,13 @@ export default function ResumeToolbar() {
           </div>
         </div>
       )}
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImport}
+      />
     </>
   );
 }

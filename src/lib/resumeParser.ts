@@ -4,6 +4,7 @@
  */
 
 import { supabase } from './supabase';
+import type { ResumeData, ResumeSection, Project, Certification, Language } from '../types/resume';
 
 
 export interface ResumeData {
@@ -285,5 +286,124 @@ export function getLatestResume(): ResumeData | null {
  */
 export function clearAllResumes(): void {
   localStorage.removeItem('parsed_resumes');
+}
+
+/**
+ * Parse resume from text and convert to ResumeData format for the editor
+ * This function takes raw resume text and returns data in the format expected by ResumeContext
+ */
+export async function parseResumeFromText(text: string): Promise<Partial<ResumeData>> {
+  // Parse the resume text using AI
+  const parsedData = await parseResumeWithAI(text);
+  
+  // Convert to ResumeData format used in the context
+  const resumeData: Partial<ResumeData> = {
+    personalInfo: {
+      fullName: parsedData.personalInfo.name || '',
+      email: parsedData.personalInfo.email || '',
+      phone: parsedData.personalInfo.phone || '',
+      location: parsedData.personalInfo.location || '',
+      linkedin: parsedData.personalInfo.linkedIn || '',
+      website: parsedData.personalInfo.portfolio || '',
+      summary: parsedData.summary || '',
+    },
+    sections: [],
+  };
+
+  // Convert experience
+  if (parsedData.experience && parsedData.experience.length > 0) {
+    const experienceSection: ResumeSection = {
+      id: 'experience',
+      type: 'experience',
+      title: 'Experience',
+      isVisible: true,
+      items: parsedData.experience.map((exp, idx) => ({
+        id: `exp_${Date.now()}_${idx}`,
+        title: exp.position || '',
+        subtitle: exp.company || '',
+        date: `${exp.startDate || ''} - ${exp.endDate || 'Present'}`,
+        description: [
+          exp.description || '',
+          ...(exp.achievements || []).map(ach => `• ${ach}`),
+        ].filter(Boolean).join('\n'),
+      })),
+    };
+    resumeData.sections!.push(experienceSection);
+  }
+
+  // Convert education
+  if (parsedData.education && parsedData.education.length > 0) {
+    const educationSection: ResumeSection = {
+      id: 'education',
+      type: 'education',
+      title: 'Education',
+      isVisible: true,
+      items: parsedData.education.map((edu, idx) => ({
+        id: `edu_${Date.now()}_${idx}`,
+        title: `${edu.degree || ''}${edu.field ? ` in ${edu.field}` : ''}`,
+        subtitle: edu.institution || '',
+        date: edu.graduationDate || '',
+        description: '',
+      })),
+    };
+    resumeData.sections!.push(educationSection);
+  }
+
+  // Convert skills
+  const allSkills = [
+    ...(parsedData.skills?.technical || []),
+    ...(parsedData.skills?.soft || []),
+  ];
+  if (allSkills.length > 0) {
+    const skillsSection: ResumeSection = {
+      id: 'skills',
+      type: 'skills',
+      title: 'Skills',
+      isVisible: true,
+      items: allSkills.map((skill, idx) => ({
+        id: `skill_${Date.now()}_${idx}`,
+        title: skill,
+        subtitle: '',
+        date: '',
+        description: '',
+      })),
+    };
+    resumeData.sections!.push(skillsSection);
+  }
+
+  // Convert certifications
+  if (parsedData.certifications && parsedData.certifications.length > 0) {
+    resumeData.certifications = parsedData.certifications.map((cert, idx) => ({
+      id: `cert_${Date.now()}_${idx}`,
+      name: cert.name || '',
+      issuer: cert.issuer || '',
+      date: cert.date || '',
+      url: undefined,
+    }));
+  }
+
+  // Convert projects
+  if (parsedData.projects && parsedData.projects.length > 0) {
+    resumeData.projects = parsedData.projects.map((proj, idx) => ({
+      id: `proj_${Date.now()}_${idx}`,
+      title: proj.name || '',
+      description: proj.description || '',
+      startDate: '',
+      endDate: '',
+      url: proj.link,
+      technologies: proj.technologies || [],
+    }));
+  }
+
+  // Convert languages
+  if (parsedData.skills?.languages && parsedData.skills.languages.length > 0) {
+    resumeData.languages = parsedData.skills.languages.map((lang, idx) => ({
+      id: `lang_${Date.now()}_${idx}`,
+      language: lang,
+      proficiency: 'Fluent' as const,
+    }));
+  }
+
+  return resumeData;
 }
 
