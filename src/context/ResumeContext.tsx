@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
 import { ResumeData, PersonalInfo, FormattingSettings, ResumeSection, TargetJob, INITIAL_RESUME_STATE } from '../types/resume';
+import { getCurrentResumeId, loadResume, saveResume } from '../lib/resumeStorage';
 
 // Action types
 type ResumeAction =
@@ -30,6 +31,16 @@ const ResumeContext = createContext<ResumeContextState | undefined>(undefined);
 // Helper function to get initial state from localStorage
 function getInitialState(): ResumeData {
   try {
+    // First, try to load from resume storage (if a resume is currently selected)
+    const currentResumeId = getCurrentResumeId();
+    if (currentResumeId) {
+      const loadedResume = loadResume(currentResumeId);
+      if (loadedResume) {
+        return loadedResume;
+      }
+    }
+    
+    // Fallback to legacy localStorage key
     const storedData = localStorage.getItem('resume-data');
     if (storedData) {
       const parsed = JSON.parse(storedData);
@@ -190,7 +201,15 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     // Set new timer to save after 500ms
     debounceTimerRef.current = setTimeout(() => {
       try {
+        // Save to legacy localStorage for backward compatibility
         localStorage.setItem('resume-data', JSON.stringify(state));
+        
+        // Also auto-save to new storage system if resume has been saved before
+        const currentId = getCurrentResumeId();
+        if (currentId && state.id) {
+          // Auto-save to storage system (silent, preserves title)
+          saveResume(state);
+        }
       } catch (error) {
         console.error('Error saving resume data to localStorage:', error);
       }
