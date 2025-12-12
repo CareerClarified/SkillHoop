@@ -139,19 +139,28 @@ export default function DashboardHome() {
           return;
         }
 
-        // Fetch user profile (name, tier, daily_limit)
+        // Fetch user profile (name, tier, daily_limit) - use maybeSingle() to handle missing profiles gracefully
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('full_name, tier, daily_limit')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (!profileError && profile) {
+        // Only log error if it's NOT a "no rows found" error (PGRST116)
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error fetching profile:', profileError);
+        }
+
+        // Fallback to defaults if no profile is returned
+        if (profile) {
           setUserName(profile.full_name || user.email?.split('@')[0] || 'User');
           setUserTier((profile.tier as 'free' | 'pro' | 'ultimate') || 'free');
           setDailyLimit(profile.daily_limit ?? 0);
         } else {
+          // Default values when no profile exists
           setUserName(user.email?.split('@')[0] || 'User');
+          setUserTier('free');
+          setDailyLimit(0);
         }
 
         // Fetch resume count and latest ATS score
@@ -164,12 +173,10 @@ export default function DashboardHome() {
         if (!resumeError && resumes) {
           setResumeCount(resumes.length);
           if (resumes.length > 0) {
-            // Try both field name variations
+            // Try both field name variations (snake_case and camelCase)
             const latestResume = resumes[0] as any;
-            const score = latestResume.ats_score ?? latestResume.atsScore ?? null;
-            if (score !== null && score !== undefined) {
-              setAtsScore(Number(score));
-            }
+            const score = latestResume.ats_score ?? latestResume.atsScore ?? 0;
+            setAtsScore(Number(score));
           }
         }
 
@@ -198,28 +205,34 @@ export default function DashboardHome() {
           setJobsThisWeek(jobsThisWeekResult || 0);
         }
 
-        // Fetch last application date (for Level 4 dynamic banner)
+        // Fetch last application date (for Level 4 dynamic banner) - use maybeSingle() to handle 0 applications
         const { data: lastApplication, error: lastAppError } = await supabase
           .from('job_applications')
           .select('created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (!lastAppError && lastApplication?.created_at) {
+        // Only log error if it's NOT a "no rows found" error (PGRST116)
+        if (lastAppError && lastAppError.code !== 'PGRST116') {
+          console.error('Error fetching last application:', lastAppError);
+        }
+
+        if (lastApplication?.created_at) {
           setLastApplicationDate(lastApplication.created_at);
         }
 
-        // Fetch latest brand score
+        // Fetch latest brand score - use maybeSingle() to handle 0 audits gracefully
         const { data: brandAudit, error: brandError } = await supabase
           .from('brand_audits')
           .select('brand_score')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
+        // Only log error if it's NOT a "no rows found" error (PGRST116)
         if (brandError && brandError.code !== 'PGRST116') {
           console.error('Error fetching brand score:', brandError);
         } else if (brandAudit?.brand_score) {

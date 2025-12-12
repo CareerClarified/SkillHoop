@@ -86,20 +86,44 @@ class WorkflowRecommendationsEngine {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-      // Get cover letter count
-      const { count: coverLetterCount } = await supabase
-        .from('cover_letters')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+      // Get cover letter count from ai_usage_logs (fallback to 0 if table doesn't exist or query fails)
+      let coverLetterCount = 0;
+      try {
+        const { count: coverLetterCountResult, error: coverLetterError } = await supabase
+          .from('ai_usage_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('feature_name', 'cover_letter');
+        
+        if (!coverLetterError && coverLetterCountResult !== null) {
+          coverLetterCount = coverLetterCountResult;
+        }
+      } catch (error) {
+        // Table might not exist or query might fail - gracefully return 0
+        console.debug('Could not fetch cover letter count from ai_usage_logs:', error);
+        coverLetterCount = 0;
+      }
 
-      // Get brand score (latest audit)
-      const { data: brandAudit } = await supabase
-        .from('brand_audits')
-        .select('overall_score')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      // Get brand score (latest audit) - query brand_score JSONB column and extract overall
+      let brandScore: number | null = null;
+      try {
+        const { data: brandAudit, error: brandError } = await supabase
+          .from('brand_audits')
+          .select('brand_score')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (!brandError && brandAudit?.brand_score) {
+          const score = brandAudit.brand_score as { overall?: number };
+          brandScore = score?.overall ?? null;
+        }
+      } catch (error) {
+        // Handle gracefully if query fails
+        console.debug('Could not fetch brand score:', error);
+        brandScore = null;
+      }
 
       // Get user profile for career goal (if profiles table exists and has career_goal column)
       let careerGoal: string | undefined;
@@ -139,8 +163,8 @@ class WorkflowRecommendationsEngine {
       return {
         resumeCount: resumeCount || 0,
         jobCount: jobCount || 0,
-        brandScore: brandAudit?.overall_score || null,
-        coverLetterCount: coverLetterCount || 0,
+        brandScore: brandScore,
+        coverLetterCount: coverLetterCount,
         completedWorkflows,
         activeWorkflows,
         daysSinceLastActivity,
