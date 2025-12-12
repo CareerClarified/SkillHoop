@@ -112,6 +112,12 @@ const InterviewPrep = () => {
   const [showCompanyResearch, setShowCompanyResearch] = useState(false);
   const [companyResearch, setCompanyResearch] = useState<{ culture: string; values: string[]; tips: string[] } | null>(null);
 
+  // Source Resume state
+  const [availableResumes, setAvailableResumes] = useState<Array<{ id: string; title: string }>>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [resumeContent, setResumeContent] = useState<string>('');
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'practice', label: 'Practice', icon: Target },
@@ -151,6 +157,222 @@ const InterviewPrep = () => {
     { number: 2, title: 'Practice Sessions', description: 'Start with AI mock interviews tailored to your specific role and industry.' },
     { number: 3, title: 'Track Progress', description: 'Monitor your improvement and refine your approach based on detailed analytics.' }
   ];
+
+  // Load available resumes
+  useEffect(() => {
+    loadResumes();
+  }, []);
+
+  const loadResumes = async () => {
+    setIsLoadingResumes(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try to load from Supabase first
+      const { data: supabaseResumes, error: supabaseError } = await supabase
+        .from('resumes')
+        .select('id, title')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+
+      if (!supabaseError && supabaseResumes && supabaseResumes.length > 0) {
+        setAvailableResumes(supabaseResumes);
+      } else {
+        // Fallback to localStorage
+        const { getAllSavedResumes } = await import('../lib/resumeStorage');
+        const localResumes = getAllSavedResumes();
+        if (localResumes.length > 0) {
+          setAvailableResumes(localResumes.map(r => ({ id: r.id, title: r.title })));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading resumes:', error);
+      // Fallback to localStorage
+      try {
+        const { getAllSavedResumes } = await import('../lib/resumeStorage');
+        const localResumes = getAllSavedResumes();
+        if (localResumes.length > 0) {
+          setAvailableResumes(localResumes.map(r => ({ id: r.id, title: r.title })));
+        }
+      } catch (e) {
+        console.error('Error loading local resumes:', e);
+      }
+    } finally {
+      setIsLoadingResumes(false);
+    }
+  };
+
+  // Handle resume selection
+  const handleResumeSelect = async (resumeId: string | null) => {
+    setSelectedResumeId(resumeId);
+    
+    if (!resumeId) {
+      setResumeContent('');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try Supabase first
+      const { data: resume, error } = await supabase
+        .from('resumes')
+        .select('*')
+        .eq('id', resumeId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!error && resume) {
+        const resumeData = resume.content || resume.resume_data;
+        const resumeText = extractResumeContent(resumeData);
+        setResumeContent(resumeText);
+      } else {
+        // Fallback to localStorage
+        const { loadResume } = await import('../lib/resumeStorage');
+        const localResume = loadResume(resumeId);
+        if (localResume) {
+          const resumeText = extractResumeContentFromLocal(localResume);
+          setResumeContent(resumeText);
+        }
+      }
+
+      // Regenerate questions with resume content if job is loaded
+      if (currentJob) {
+        const extractedContent = resumeContent || extractResumeContent((resume?.content || resume?.resume_data || localResume || null) as unknown);
+        await generateQuestionsWithResume(currentJob, extractedContent);
+      }
+    } catch (error) {
+      console.error('Error loading resume:', error);
+    }
+  };
+
+  // Extract resume content
+  const extractResumeContent = (resumeData: unknown): string => {
+    if (typeof resumeData === 'string') return resumeData;
+    if (!resumeData) return '';
+
+    const data = resumeData as Record<string, unknown>;
+    let content = '';
+    if (data.personalInfo) {
+      const pi = data.personalInfo as Record<string, unknown>;
+      content += `Name: ${(pi.fullName || pi.name || '') as string}\n`;
+      content += `Job Title: ${(pi.jobTitle || '') as string}\n\n`;
+    }
+    if (data.summary || (data.personalInfo && 'summary' in (data.personalInfo as Record<string, unknown>))) {
+      const pi = data.personalInfo as Record<string, unknown> | undefined;
+      content += `Summary: ${(data.summary as string) || (pi?.summary as string) || ''}\n\n`;
+    }
+    if (data.experience || data.sections) {
+      content += 'Work Experience:\n';
+      const experiences = (data.experience as Array<Record<string, unknown>>) || 
+        (((data.sections as Array<Record<string, unknown>>)?.find((s: Record<string, unknown>) => s.type === 'experience') as Record<string, unknown>)?.items as Array<Record<string, unknown>> || []);
+      experiences.forEach((exp: Record<string, unknown>) => {
+        content += `- ${(exp.jobTitle || exp.title || exp.position || '') as string} at ${(exp.company || exp.subtitle || '') as string}\n`;
+        if (exp.description) content += `  ${exp.description as string}\n`;
+      });
+      content += '\n';
+    }
+    if (data.skills) {
+      content += 'Skills: ';
+      if (Array.isArray(data.skills)) {
+        content += (data.skills as string[]).join(', ');
+      } else if (typeof data.skills === 'object' && data.skills !== null) {
+        const skillsObj = data.skills as Record<string, unknown>;
+        if (Array.isArray(skillsObj.technical)) {
+          content += (skillsObj.technical as string[]).join(', ');
+        }
+      }
+      content += '\n';
+    }
+    return content;
+  };
+
+  const extractResumeContentFromLocal = (resumeData: unknown): string => {
+    return extractResumeContent(resumeData);
+  };
+
+  // Generate questions with resume content using AI
+  const generateQuestionsWithResume = async (jobData: JobData, resumeText: string) => {
+    if (!resumeText || !jobData) {
+      // Fallback to regular generation
+      const questions = generateQuestionsForRole(
+        jobData.jobTitle || jobData.title || '',
+        jobData.company
+      );
+      setInterviewQuestions(questions);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          systemMessage: 'You are an expert interview coach. Generate personalized interview questions based on a job description and the candidate\'s resume. Return a JSON array of questions.',
+          prompt: `Generate interview questions for this role based on the job description and the candidate's resume.
+
+JOB INFORMATION:
+Title: ${jobData.jobTitle || jobData.title || 'Unknown'}
+Company: ${jobData.company || 'Unknown'}
+Description: ${jobData.jobDescription || jobData.description || 'Not provided'}
+
+CANDIDATE'S RESUME:
+${resumeText}
+
+Generate 15-20 personalized interview questions that:
+1. Are specific to this role and company
+2. Reference the candidate's actual experience and projects from their resume
+3. Include technical questions relevant to their skills
+4. Include behavioral questions that relate to their work history
+5. Cover general, technical, behavioral, and role-specific categories
+
+Return a JSON array in this format:
+[
+  { "id": 1, "question": "Question text", "category": "Technical", "difficulty": "Medium" },
+  ...
+]
+
+Return only valid JSON, no additional text:`,
+          userId: userId,
+          feature_name: 'interview_prep',
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.content;
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const questions = JSON.parse(jsonMatch[0]);
+          setInterviewQuestions(questions);
+          const priorities = prioritizeQuestions(questions, jobData, jobData.interviewDate);
+          setQuestionPriorities(priorities);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } else {
+        throw new Error('Failed to generate questions');
+      }
+    } catch (error) {
+      console.error('Error generating questions with AI:', error);
+      // Fallback to regular generation
+      const questions = generateQuestionsForRole(
+        jobData.jobTitle || jobData.title || '',
+        jobData.company
+      );
+      setInterviewQuestions(questions);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Check for quick start wizard on mount
   useEffect(() => {
@@ -422,12 +644,16 @@ const InterviewPrep = () => {
           }
         }
 
-        // Generate questions
-        const questions = generateQuestionsForRole(
-          jobData.jobTitle || jobData.title || '',
-          jobData.company
-        );
-        setInterviewQuestions(questions);
+        // Generate questions (with resume if selected)
+        if (resumeContent) {
+          await generateQuestionsWithResume(jobData, resumeContent);
+        } else {
+          const questions = generateQuestionsForRole(
+            jobData.jobTitle || jobData.title || '',
+            jobData.company
+          );
+          setInterviewQuestions(questions);
+        }
 
         // Prioritize questions
         const priorities = prioritizeQuestions(questions, jobData, jobData.interviewDate);
@@ -911,6 +1137,35 @@ Return ONLY valid JSON, no additional text.`,
         />
       )}
 
+      {/* Source Resume Selector */}
+      <div className="bg-white/50 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-4">
+        <label className="block text-sm font-semibold text-slate-800 mb-2">
+          Source Resume (Optional - for personalized questions)
+        </label>
+        <select
+          value={selectedResumeId || ''}
+          onChange={(e) => handleResumeSelect(e.target.value || null)}
+          className="w-full max-w-md px-4 py-2 bg-white/70 border border-slate-300 rounded-xl text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-300"
+          disabled={isLoadingResumes}
+        >
+          <option value="">Select a resume to personalize questions...</option>
+          {availableResumes.map((resume) => (
+            <option key={resume.id} value={resume.id}>
+              {resume.title}
+            </option>
+          ))}
+        </select>
+        {isLoadingResumes && (
+          <p className="text-xs text-slate-500 mt-1">Loading resumes...</p>
+        )}
+        {selectedResumeId && resumeContent && (
+          <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
+            <Check className="w-3 h-3" />
+            Resume loaded. Questions will be personalized based on your experience.
+          </p>
+        )}
+      </div>
+
       {/* Navigation Tabs */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 rounded-lg p-1">
         <div className="flex flex-wrap gap-1">
@@ -1141,13 +1396,18 @@ Return ONLY valid JSON, no additional text.`,
                   </h3>
                   <button
                     onClick={() => {
-                      const questions = generateQuestionsForRole(
-                        currentJob.jobTitle || currentJob.title || '',
-                        currentJob.company
-                      );
-                      setInterviewQuestions(questions);
-                      const priorities = prioritizeQuestions(questions, currentJob, currentJob.interviewDate);
-                      setQuestionPriorities(priorities);
+                      // Regenerate questions with resume if selected
+                      if (resumeContent) {
+                        await generateQuestionsWithResume(currentJob, resumeContent);
+                      } else {
+                        const questions = generateQuestionsForRole(
+                          currentJob.jobTitle || currentJob.title || '',
+                          currentJob.company
+                        );
+                        setInterviewQuestions(questions);
+                        const priorities = prioritizeQuestions(questions, currentJob, currentJob.interviewDate);
+                        setQuestionPriorities(priorities);
+                      }
                     }}
                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
                   >

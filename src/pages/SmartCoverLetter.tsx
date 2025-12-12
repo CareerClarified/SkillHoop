@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Upload,
   Building2,
@@ -17,10 +16,6 @@ import {
   Save,
   RefreshCw,
   ChevronRight,
-  ArrowRight,
-  Check,
-  X,
-  Target,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { WorkflowTracking } from '../lib/workflowTracking';
@@ -42,11 +37,10 @@ interface AnalysisData {
 
 // --- Main Component ---
 const SmartCoverLetter = () => {
-  const navigate = useNavigate();
   const [step, setStep] = useState<'upload' | 'input' | 'generate' | 'edit'>('upload');
   
   // Workflow state
-  const [workflowContext, setWorkflowContext] = useState<any>(null);
+  const [workflowContext, setWorkflowContext] = useState<Record<string, unknown> | null>(null);
   const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvContent, setCvContent] = useState('');
@@ -60,6 +54,187 @@ const SmartCoverLetter = () => {
   const [uploadError, setUploadError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [isFetchingUrl, setIsFetchingUrl] = useState(false);
+  
+  // Source Resume state
+  const [availableResumes, setAvailableResumes] = useState<Array<{ id: string; title: string }>>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [resumeContent, setResumeContent] = useState<string>('');
+
+  // Load available resumes
+  useEffect(() => {
+    loadResumes();
+  }, []);
+
+  const loadResumes = async () => {
+    setIsLoadingResumes(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try to load from Supabase first
+      const { data: supabaseResumes, error: supabaseError } = await supabase
+        .from('resumes')
+        .select('id, title')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+
+      if (!supabaseError && supabaseResumes && supabaseResumes.length > 0) {
+        setAvailableResumes(supabaseResumes);
+      } else {
+        // Fallback to localStorage
+        const { getAllSavedResumes } = await import('../lib/resumeStorage');
+        const localResumes = getAllSavedResumes();
+        if (localResumes.length > 0) {
+          setAvailableResumes(localResumes.map(r => ({ id: r.id, title: r.title })));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading resumes:', error);
+      // Fallback to localStorage
+      try {
+        const { getAllSavedResumes } = await import('../lib/resumeStorage');
+        const localResumes = getAllSavedResumes();
+        if (localResumes.length > 0) {
+          setAvailableResumes(localResumes.map(r => ({ id: r.id, title: r.title })));
+        }
+      } catch (e) {
+        console.error('Error loading local resumes:', e);
+      }
+    } finally {
+      setIsLoadingResumes(false);
+    }
+  };
+
+  // Handle resume selection
+  const handleResumeSelect = async (resumeId: string | null) => {
+    setSelectedResumeId(resumeId);
+    
+    if (!resumeId) {
+      setResumeContent('');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try Supabase first
+      const { data: resume, error } = await supabase
+        .from('resumes')
+        .select('*')
+        .eq('id', resumeId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!error && resume) {
+        // Extract resume content for cover letter
+        const resumeData = resume.content || resume.resume_data;
+        const resumeText = extractResumeContent(resumeData);
+        setResumeContent(resumeText);
+        setCvContent(resumeText);
+      } else {
+        // Fallback to localStorage
+        const { loadResume } = await import('../lib/resumeStorage');
+        const localResume = loadResume(resumeId);
+        if (localResume) {
+          const resumeText = extractResumeContentFromLocal(localResume);
+          setResumeContent(resumeText);
+          setCvContent(resumeText);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading resume:', error);
+    }
+  };
+
+  // Extract resume content for cover letter generation
+  const extractResumeContent = (resumeData: unknown): string => {
+    if (typeof resumeData === 'string') {
+      return resumeData;
+    }
+    if (!resumeData) return '';
+
+    let content = '';
+    
+    const data = resumeData as Record<string, unknown>;
+    
+    // Personal Info
+    const personalInfo = data.personalInfo as Record<string, unknown> | undefined;
+    if (personalInfo) {
+      content += `Name: ${(personalInfo.fullName || personalInfo.name || '') as string}\n`;
+      content += `Job Title: ${(personalInfo.jobTitle || '') as string}\n`;
+      content += `Email: ${(personalInfo.email || '') as string}\n`;
+      content += `Phone: ${(personalInfo.phone || '') as string}\n`;
+      content += `Location: ${(personalInfo.location || '') as string}\n\n`;
+    }
+
+    // Summary
+    if (data.summary || (personalInfo && 'summary' in personalInfo && personalInfo.summary)) {
+      content += `Summary: ${(data.summary as string) || (personalInfo && 'summary' in personalInfo ? String(personalInfo.summary) : '') || ''}\n\n`;
+    }
+
+    // Work Experience
+    if (data.experience || data.sections) {
+      content += 'Work Experience:\n';
+      const experiences = (data.experience as Array<Record<string, unknown>>) || 
+        (((data.sections as Array<Record<string, unknown>>)?.find((s: Record<string, unknown>) => s.type === 'experience') as Record<string, unknown>)?.items as Array<Record<string, unknown>> || []);
+      experiences.forEach((exp: Record<string, unknown>) => {
+        content += `- ${exp.jobTitle || exp.title || exp.position || ''} at ${exp.company || exp.subtitle || ''}\n`;
+        if (exp.description) content += `  ${exp.description}\n`;
+        if (exp.startDate && exp.endDate) {
+          content += `  ${exp.startDate} - ${exp.endDate}\n`;
+        }
+      });
+      content += '\n';
+    }
+
+    // Skills
+    if (data.skills) {
+      content += 'Skills: ';
+      if (Array.isArray(data.skills)) {
+        content += (data.skills as string[]).join(', ');
+      } else if (typeof data.skills === 'object' && data.skills !== null) {
+        const skillsObj = data.skills as Record<string, unknown>;
+        if (Array.isArray(skillsObj.technical)) {
+          content += (skillsObj.technical as string[]).join(', ');
+          if (Array.isArray(skillsObj.soft)) {
+            content += ', ' + (skillsObj.soft as string[]).join(', ');
+          }
+        }
+      }
+      content += '\n\n';
+    } else if (data.sections) {
+      const skillsSection = ((data.sections as Array<Record<string, unknown>>)?.find((s: Record<string, unknown>) => s.type === 'skills')) as Record<string, unknown> | undefined;
+      if (skillsSection?.items && Array.isArray(skillsSection.items)) {
+        content += 'Skills: ';
+        content += (skillsSection.items as Array<Record<string, unknown>>).map((item: Record<string, unknown>) => (item.title || item.name) as string).join(', ');
+        content += '\n\n';
+      }
+    }
+
+    // Education
+    if (data.education || data.sections) {
+      content += 'Education:\n';
+      const education = (data.education as Array<Record<string, unknown>>) ||
+        (((data.sections as Array<Record<string, unknown>>)?.find((s: Record<string, unknown>) => s.type === 'education') as Record<string, unknown>)?.items as Array<Record<string, unknown>> || []);
+      education.forEach((edu: Record<string, unknown>) => {
+        content += `- ${edu.degree || edu.title || ''} from ${edu.institution || edu.school || edu.subtitle || ''}\n`;
+        if (edu.field) content += `  ${edu.field}\n`;
+        if (edu.graduationDate || edu.endDate) {
+          content += `  ${edu.graduationDate || edu.endDate}\n`;
+        }
+      });
+    }
+
+    return content;
+  };
+
+  // Extract resume content from localStorage format
+  const extractResumeContentFromLocal = (resumeData: unknown): string => {
+    return extractResumeContent(resumeData);
+  };
 
   // Check for workflow context on mount
   useEffect(() => {
@@ -245,7 +420,7 @@ Return the complete job posting text in a clear, readable format. If you cannot 
           prompt: `Analyze this resume and job description to prepare for generating a tailored cover letter.
 
 RESUME/CV CONTENT:
-${cvContent}
+${resumeContent || cvContent}
 
 JOB DESCRIPTION:
 ${jobDescription}
@@ -329,7 +504,7 @@ Return only valid JSON, no additional text:`,
           prompt: `Write a professional cover letter based on this resume and job description.
 
 RESUME/CV CONTENT:
-${cvContent}
+${resumeContent || cvContent}
 
 JOB DESCRIPTION:
 ${jobDescription}
@@ -380,7 +555,7 @@ Return only the cover letter text, no additional explanation:`,
       const workflow1 = WorkflowTracking.getWorkflow('job-application-pipeline');
       if (workflow1 && workflow1.isActive && workflowContext?.workflowId === 'job-application-pipeline') {
         WorkflowTracking.updateStepStatus('job-application-pipeline', 'generate-cover-letter', 'completed', {
-          jobTitle: workflowContext?.currentJob?.title || analysisData?.jobTitle || 'Unknown'
+          jobTitle: ((workflowContext?.currentJob as Record<string, unknown>)?.title as string) || analysisData?.jobTitle || 'Unknown'
         });
         
         setShowWorkflowPrompt(true);
@@ -540,7 +715,38 @@ Return only the cover letter text, no additional explanation:`,
 
       {/* Main Header */}
       <div className="bg-white/50 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-6">
-        <h3 className="text-3xl font-bold text-slate-800 mb-4">Cover Letter Generator</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-3xl font-bold text-slate-800">Cover Letter Generator</h3>
+        </div>
+        
+        {/* Source Resume Dropdown */}
+        <div className="mt-4">
+          <label className="block text-sm font-semibold text-slate-800 mb-2">
+            Source Resume (Optional)
+          </label>
+          <select
+            value={selectedResumeId || ''}
+            onChange={(e) => handleResumeSelect(e.target.value || null)}
+            className="w-full max-w-md px-4 py-2 bg-white/70 border border-slate-300 rounded-xl text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all duration-300"
+            disabled={isLoadingResumes}
+          >
+            <option value="">Select a resume to auto-fill experience...</option>
+            {availableResumes.map((resume) => (
+              <option key={resume.id} value={resume.id}>
+                {resume.title}
+              </option>
+            ))}
+          </select>
+          {isLoadingResumes && (
+            <p className="text-xs text-slate-500 mt-1">Loading resumes...</p>
+          )}
+          {selectedResumeId && resumeContent && (
+            <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              Resume content loaded. Experience section will be auto-filled.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Progress Indicator */}

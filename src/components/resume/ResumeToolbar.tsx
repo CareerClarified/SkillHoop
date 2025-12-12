@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2, Clock, BarChart3, X } from 'lucide-react';
+import { Download, Save, Sparkles, RotateCcw, FileText, CheckCircle2, Clock, BarChart3, X, Target, ChevronDown } from 'lucide-react';
 import { useResume } from '../../context/ResumeContext';
 import { INITIAL_RESUME_STATE, type ResumeData } from '../../types/resume';
 import { saveResume, getCurrentResumeId, type SavedResume } from '../../lib/resumeStorage';
+import { supabase } from '../../lib/supabase';
 import SaveResumeModal from './SaveResumeModal';
 import ResumeLibrary from './ResumeLibrary';
 import ExportModal from './ExportModal';
 import VersionHistoryPanel from './VersionHistoryPanel';
 import ResumeAnalytics from './ResumeAnalytics';
+
+interface JobApplication {
+  id: string;
+  title: string;
+  company: string;
+  status?: string;
+}
 
 export default function ResumeToolbar() {
   const { state, dispatch } = useResume();
@@ -18,10 +26,70 @@ export default function ResumeToolbar() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  
+  // Target Job state
+  const [jobs, setJobs] = useState<JobApplication[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(state.targetJobId || null);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [showJobDropdown, setShowJobDropdown] = useState(false);
 
   useEffect(() => {
     setCurrentResumeId(getCurrentResumeId());
-  }, []);
+    loadJobs();
+    // Load target job ID from resume state
+    if (state.targetJobId) {
+      setSelectedJobId(state.targetJobId);
+    }
+  }, [state.targetJobId]);
+
+  // Load jobs from Supabase
+  const loadJobs = async () => {
+    setIsLoadingJobs(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('id, title, company, status')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      if (data) {
+        setJobs(data as JobApplication[]);
+      }
+    } catch (error) {
+      console.error('Error loading jobs:', error);
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  };
+
+  // Handle job selection
+  const handleJobSelect = async (jobId: string | null) => {
+    setSelectedJobId(jobId);
+    setShowJobDropdown(false);
+    
+    // Update resume state with target_job_id
+    const updatedResume = { ...state, targetJobId: jobId };
+    dispatch({
+      type: 'SET_RESUME',
+      payload: updatedResume,
+    });
+    
+    // If resume is saved, update it in storage
+    if (currentResumeId) {
+      try {
+        saveResume(updatedResume);
+      } catch (error) {
+        console.error('Error updating resume with target job:', error);
+      }
+    }
+  };
+
+  const selectedJob = jobs.find(j => j.id === selectedJobId);
 
   const handleSave = () => {
     setShowSaveModal(true);
@@ -103,7 +171,74 @@ export default function ResumeToolbar() {
 
   return (
     <>
-      <div className="flex items-center gap-2 no-print">
+      <div className="flex items-center gap-2 no-print flex-wrap">
+        {/* Target Job Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowJobDropdown(!showJobDropdown)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 hover:border-slate-400 transition-colors"
+            title="Select target job for tailoring"
+          >
+            <Target className="w-4 h-4" />
+            <span>{selectedJob ? `${selectedJob.title} at ${selectedJob.company}` : 'Target Job'}</span>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          
+          {showJobDropdown && (
+            <>
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setShowJobDropdown(false)}
+              />
+              <div className="absolute top-full left-0 mt-1 z-20 bg-white border border-slate-300 rounded-md shadow-lg min-w-[300px] max-w-md max-h-[400px] overflow-y-auto">
+                <div className="p-2">
+                  <button
+                    onClick={() => handleJobSelect(null)}
+                    className={`w-full text-left px-3 py-2 rounded hover:bg-slate-100 text-sm ${
+                      !selectedJobId ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-slate-700'
+                    }`}
+                  >
+                    No Target Job
+                  </button>
+                  {isLoadingJobs ? (
+                    <div className="px-3 py-2 text-sm text-slate-500">Loading jobs...</div>
+                  ) : jobs.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-slate-500">No jobs found. Add jobs in Job Tracker.</div>
+                  ) : (
+                    jobs.map((job) => (
+                      <button
+                        key={job.id}
+                        onClick={() => handleJobSelect(job.id)}
+                        className={`w-full text-left px-3 py-2 rounded hover:bg-slate-100 text-sm ${
+                          selectedJobId === job.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-slate-700'
+                        }`}
+                      >
+                        <div className="font-medium">{job.title}</div>
+                        <div className="text-xs text-slate-500">{job.company}</div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Target Job Badge */}
+        {selectedJob && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium">
+            <Target className="w-3 h-3" />
+            <span>Tailoring for {selectedJob.title} at {selectedJob.company}</span>
+            <button
+              onClick={() => handleJobSelect(null)}
+              className="ml-1 hover:text-indigo-900"
+              title="Clear target job"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
         {/* My Resumes Button */}
         <button
           onClick={() => setShowLibrary(true)}

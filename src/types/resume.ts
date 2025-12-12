@@ -91,6 +91,7 @@ export interface ResumeData {
   updatedAt: string;
   isAISidebarOpen: boolean;
   targetJob: TargetJob;
+  targetJobId?: string | null; // Reference to job_applications.id
   focusedSectionId: string | null;
   // Advanced sections
   projects?: Project[];
