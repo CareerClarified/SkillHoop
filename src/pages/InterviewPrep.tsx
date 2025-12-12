@@ -645,19 +645,22 @@ Return only valid JSON, no additional text:`,
         }
 
         // Generate questions (with resume if selected)
+        let questions: InterviewQuestion[];
         if (resumeContent) {
           await generateQuestionsWithResume(jobData, resumeContent);
+          // generateQuestionsWithResume sets interviewQuestions via setInterviewQuestions
+          // We need to wait for state update, so we'll prioritize in the generateQuestionsWithResume function
         } else {
-          const questions = generateQuestionsForRole(
+          questions = generateQuestionsForRole(
             jobData.jobTitle || jobData.title || '',
             jobData.company
           );
           setInterviewQuestions(questions);
+          
+          // Prioritize questions
+          const priorities = prioritizeQuestions(questions, jobData, jobData.interviewDate);
+          setQuestionPriorities(priorities);
         }
-
-        // Prioritize questions
-        const priorities = prioritizeQuestions(questions, jobData, jobData.interviewDate);
-        setQuestionPriorities(priorities);
 
         // Build story bank from resume
         const stories = buildStoryBankFromResume();
@@ -1395,7 +1398,7 @@ Return ONLY valid JSON, no additional text.`,
                     Interview Questions for {currentJob.jobTitle || currentJob.title}
                   </h3>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       // Regenerate questions with resume if selected
                       if (resumeContent) {
                         await generateQuestionsWithResume(currentJob, resumeContent);
