@@ -413,44 +413,6 @@ Return only the cover letter text, no additional explanation:`,
         
         setShowWorkflowPrompt(true);
       }
-      
-      // Update workflow progress - Workflow 1
-      const workflow1 = WorkflowTracking.getWorkflow('job-application-pipeline');
-      if (workflow1 && workflow1.isActive && workflowContext?.workflowId === 'job-application-pipeline') {
-        WorkflowTracking.updateStepStatus('job-application-pipeline', 'generate-cover-letter', 'completed', {
-          jobTitle: workflowContext?.currentJob?.title || analysisData?.jobTitle || 'Unknown'
-        });
-        
-        setShowWorkflowPrompt(true);
-        
-        // Store cover letter in workflow context for next step
-        WorkflowTracking.setWorkflowContext({
-          workflowId: 'job-application-pipeline',
-          coverLetter: content,
-          currentJob: workflowContext?.currentJob,
-          tailoredResume: workflowContext?.tailoredResume,
-          action: 'archive-documents'
-        });
-      }
-      
-      // Update workflow progress - Workflow 6
-      const workflow6 = WorkflowTracking.getWorkflow('document-consistency-version-control');
-      if (workflow6 && workflow6.isActive && workflowContext?.workflowId === 'document-consistency-version-control') {
-        WorkflowTracking.updateStepStatus('document-consistency-version-control', 'sync-cover-letters', 'completed', {
-          coverLetterGenerated: true,
-          syncedWithResume: true
-        });
-        
-        // Store cover letter in workflow context
-        WorkflowTracking.setWorkflowContext({
-          workflowId: 'document-consistency-version-control',
-          resumeData: workflowContext?.resumeData,
-          coverLetter: content,
-          action: 'archive-versions'
-        });
-        
-        setShowWorkflowPrompt(true);
-      }
     } catch (error) {
       console.error('Error generating cover letter:', error);
       alert((error as Error).message || 'Failed to generate cover letter. Please try again.');
