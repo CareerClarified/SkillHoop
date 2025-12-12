@@ -9,8 +9,48 @@ export interface SectionItem {
 export interface ResumeSection {
   id: string;
   title: string;
-  type: 'personal' | 'experience' | 'education' | 'skills' | 'custom';
+  type: 'personal' | 'experience' | 'education' | 'skills' | 'projects' | 'certifications' | 'languages' | 'volunteer' | 'custom';
   isVisible: boolean;
+  items: SectionItem[];
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  role?: string;
+  company?: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  url?: string;
+}
+
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  url?: string;
+}
+
+export interface Language {
+  id: string;
+  language: string;
+  proficiency: 'Native' | 'Fluent' | 'Intermediate' | 'Basic' | 'Conversational' | 'Professional';
+}
+
+export interface Volunteer {
+  id: string;
+  organization: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
   items: SectionItem[];
 }
 
@@ -52,6 +92,12 @@ export interface ResumeData {
   isAISidebarOpen: boolean;
   targetJob: TargetJob;
   focusedSectionId: string | null;
+  // Advanced sections
+  projects?: Project[];
+  certifications?: Certification[];
+  languages?: Language[];
+  volunteer?: Volunteer[];
+  customSections?: CustomSection[];
 }
 
 export const INITIAL_RESUME_STATE: ResumeData = {

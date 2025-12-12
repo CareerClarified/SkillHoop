@@ -83,18 +83,43 @@ export interface CertificationItem {
 
 export interface ProjectItem {
   id: string;
-  name: string;
+  title: string;
+  role?: string;
+  company?: string;
+  startDate: string;
+  endDate: string;
   description: string;
-  technologies: string[];
   url?: string;
-  startDate?: string;
-  endDate?: string;
+  // Legacy support
+  name?: string;
+  technologies?: string[];
 }
 
 export interface LanguageItem {
   id: string;
   language: string;
   proficiency: 'native' | 'fluent' | 'professional' | 'conversational' | 'basic';
+}
+
+export interface VolunteerItem {
+  id: string;
+  organization: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
+export interface CustomSectionItem {
+  id: string;
+  title: string;
+  items: {
+    id: string;
+    title: string;
+    subtitle: string;
+    date: string;
+    description: string;
+  }[];
 }
 
 export interface ResumeData {
@@ -112,6 +137,8 @@ export interface ResumeData {
   certifications?: CertificationItem[];
   projects?: ProjectItem[];
   languages?: LanguageItem[];
+  volunteer?: VolunteerItem[];
+  customSections?: CustomSectionItem[];
   profilePicture?: string;
 }
 
@@ -138,6 +165,27 @@ export interface ResumeControlPanelProps {
   onAIEnhanceExperience?: (id: string, currentDescription: string) => void;
   loadingExperienceId?: string | null;
   onDragEnd?: (event: DragEndEvent) => void;
+  // Advanced sections handlers
+  onAddCertification?: () => void;
+  onRemoveCertification?: (id: string) => void;
+  onUpdateCertification?: (id: string, field: string, value: string) => void;
+  onAddProject?: () => void;
+  onRemoveProject?: (id: string) => void;
+  onUpdateProject?: (id: string, field: string, value: string | string[]) => void;
+  onAddLanguage?: () => void;
+  onRemoveLanguage?: (id: string) => void;
+  onUpdateLanguage?: (id: string, field: string, value: string) => void;
+  onAddVolunteer?: () => void;
+  onRemoveVolunteer?: (id: string) => void;
+  onUpdateVolunteer?: (id: string, field: string, value: string) => void;
+  onAddCustomSection?: (title: string) => void;
+  onRemoveCustomSection?: (id: string) => void;
+  onUpdateCustomSection?: (id: string, title: string) => void;
+  onAddCustomSectionItem?: (sectionId: string) => void;
+  onRemoveCustomSectionItem?: (sectionId: string, itemId: string) => void;
+  onUpdateCustomSectionItem?: (sectionId: string, itemId: string, field: string, value: string) => void;
+  targetJobDescription?: string;
+  resumeId?: string;
 }
 
 // Sections Tab Component
@@ -168,6 +216,131 @@ interface SectionsTabProps {
   onAddLanguage?: () => void;
   onRemoveLanguage?: (id: string) => void;
   onUpdateLanguage?: (id: string, field: string, value: string) => void;
+  onAddVolunteer?: () => void;
+  onRemoveVolunteer?: (id: string) => void;
+  onUpdateVolunteer?: (id: string, field: string, value: string) => void;
+  onAddCustomSection?: (title: string) => void;
+  onRemoveCustomSection?: (id: string) => void;
+  onUpdateCustomSection?: (id: string, title: string) => void;
+  onAddCustomSectionItem?: (sectionId: string) => void;
+  onRemoveCustomSectionItem?: (sectionId: string, itemId: string) => void;
+  onUpdateCustomSectionItem?: (sectionId: string, itemId: string, field: string, value: string) => void;
+}
+
+// Add Section Menu Component
+interface AddSectionMenuProps {
+  onAddSection: (type: 'projects' | 'certifications' | 'languages' | 'volunteer' | 'custom', customTitle?: string) => void;
+  onClose: () => void;
+  existingSections: string[];
+}
+
+function AddSectionMenu({ onAddSection, onClose, existingSections }: AddSectionMenuProps) {
+  const [customSectionTitle, setCustomSectionTitle] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
+  const availableSections = [
+    { id: 'projects', label: 'Projects', icon: '📁', description: 'Showcase your projects' },
+    { id: 'certifications', label: 'Certifications', icon: '🎓', description: 'Professional certifications' },
+    { id: 'languages', label: 'Languages', icon: '🌐', description: 'Language proficiencies' },
+    { id: 'volunteer', label: 'Volunteer Work', icon: '🤝', description: 'Volunteer experience' },
+    { id: 'custom', label: 'Custom Section', icon: '➕', description: 'Create a custom section' },
+  ];
+
+  const handleAddCustom = () => {
+    if (customSectionTitle.trim()) {
+      onAddSection('custom', customSectionTitle.trim());
+      setCustomSectionTitle('');
+      setShowCustomInput(false);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+      <div className="p-2">
+        <div className="flex items-center justify-between mb-2 px-2">
+          <h3 className="text-sm font-semibold text-gray-900">Add Section</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="space-y-1">
+          {availableSections.map((section) => {
+            const isAdded = existingSections.includes(section.id);
+            return (
+              <button
+                key={section.id}
+                onClick={() => {
+                  if (section.id === 'custom') {
+                    setShowCustomInput(true);
+                  } else if (!isAdded) {
+                    onAddSection(section.id as any);
+                    onClose();
+                  }
+                }}
+                disabled={isAdded && section.id !== 'custom'}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                  isAdded && section.id !== 'custom'
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{section.icon}</span>
+                  <div className="flex-1">
+                    <div className="font-medium">{section.label}</div>
+                    <div className="text-xs text-gray-500">{section.description}</div>
+                  </div>
+                  {isAdded && section.id !== 'custom' && (
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {showCustomInput && (
+          <div className="mt-2 p-2 border-t border-gray-200">
+            <input
+              type="text"
+              value={customSectionTitle}
+              onChange={(e) => setCustomSectionTitle(e.target.value)}
+              placeholder="Enter section title..."
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddCustom();
+                if (e.key === 'Escape') {
+                  setShowCustomInput(false);
+                  setCustomSectionTitle('');
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddCustom}
+                className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                Add
+              </button>
+              <button
+                onClick={() => {
+                  setShowCustomInput(false);
+                  setCustomSectionTitle('');
+                }}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // SortableItem Component - Wraps items with drag functionality
@@ -204,12 +377,15 @@ function SortableItem({ id, children }: SortableItemProps) {
   );
 }
 
-function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience, onAddEducation, onRemoveEducation, onUpdateEducation, onAddSkill, onRemoveSkill, onProfilePictureChange, onRemoveProfilePicture, onAIEnhanceExperience, loadingExperienceId, onDragEnd, onAddCertification, onRemoveCertification, onUpdateCertification, onAddProject, onRemoveProject, onUpdateProject, onAddLanguage, onRemoveLanguage, onUpdateLanguage }: SectionsTabProps) {
+function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExperience, onRemoveExperience, onUpdateExperience, onAddEducation, onRemoveEducation, onUpdateEducation, onAddSkill, onRemoveSkill, onProfilePictureChange, onRemoveProfilePicture, onAIEnhanceExperience, loadingExperienceId, onDragEnd, onAddCertification, onRemoveCertification, onUpdateCertification, onAddProject, onRemoveProject, onUpdateProject, onAddLanguage, onRemoveLanguage, onUpdateLanguage, onAddVolunteer, onRemoveVolunteer, onUpdateVolunteer, onAddCustomSection, onRemoveCustomSection, onUpdateCustomSection, onAddCustomSectionItem, onRemoveCustomSectionItem, onUpdateCustomSectionItem }: SectionsTabProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
   const [expandedEducationId, setExpandedEducationId] = useState<string | null>(null);
   const [expandedCertificationId, setExpandedCertificationId] = useState<string | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [expandedVolunteerId, setExpandedVolunteerId] = useState<string | null>(null);
+  const [expandedCustomSectionItemId, setExpandedCustomSectionItemId] = useState<Record<string, string | null>>({});
+  const [showAddSectionMenu, setShowAddSectionMenu] = useState(false);
   const [skillInput, setSkillInput] = useState<string>('');
   const [projectTechInput, setProjectTechInput] = useState<Record<string, string>>({});
 
@@ -238,6 +414,26 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
     onToggle(sectionId);
   };
 
+  const existingSectionIds = sections.map(s => s.id);
+  
+  const handleAddSection = (type: 'projects' | 'certifications' | 'languages' | 'volunteer' | 'custom', customTitle?: string) => {
+    if (type === 'custom' && onAddCustomSection) {
+      const title = customTitle || prompt('Enter section title:');
+      if (title && title.trim()) {
+        onAddCustomSection(title.trim());
+      }
+    } else if (type === 'volunteer' && onAddVolunteer) {
+      onAddVolunteer();
+    } else if (type === 'projects' && onAddProject) {
+      onAddProject();
+    } else if (type === 'certifications' && onAddCertification) {
+      onAddCertification();
+    } else if (type === 'languages' && onAddLanguage) {
+      onAddLanguage();
+    }
+    setShowAddSectionMenu(false);
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -245,6 +441,32 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
       onDragEnd={onDragEnd || (() => {})}
     >
       <div className="p-6 space-y-3">
+        {/* Add Section Button */}
+        <div className="relative">
+          <button
+            onClick={() => setShowAddSectionMenu(!showAddSectionMenu)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add Section
+          </button>
+          {showAddSectionMenu && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowAddSectionMenu(false)}
+              />
+              <div className="absolute top-full left-0 mt-2 z-50">
+                <AddSectionMenu
+                  onAddSection={handleAddSection}
+                  onClose={() => setShowAddSectionMenu(false)}
+                  existingSections={existingSectionIds}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
       {sections.map((section) => {
         const isExpanded = expandedSection === section.id;
         const isVisible = section.isVisible;
@@ -924,7 +1146,7 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                                       <GripVertical className="w-4 h-4" />
                                     </div>
                                     <span className="text-sm font-medium text-gray-900 flex-1">
-                                      {proj.name || 'Untitled Project'}
+                                      {proj.title || proj.name || 'Untitled Project'}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -945,14 +1167,58 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                                 {isExpanded && (
                                   <div className="p-4 space-y-3">
                                     <div>
-                                      <label className="block text-xs font-medium text-gray-700 mb-1.5">Project Name</label>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1.5">Project Title</label>
                                       <input
                                         type="text"
-                                        value={proj.name}
-                                        onChange={(e) => onUpdateProject(proj.id, 'name', e.target.value)}
-                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={proj.title || proj.name || ''}
+                                        onChange={(e) => onUpdateProject(proj.id, 'title', e.target.value)}
+                                        className="w-full px-3 py-2 md:py-2 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
                                         placeholder="E-Commerce Platform"
                                       />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Role (optional)</label>
+                                        <input
+                                          type="text"
+                                          value={proj.role || ''}
+                                          onChange={(e) => onUpdateProject(proj.id, 'role', e.target.value)}
+                                          className="w-full px-3 py-2 md:py-2 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                                          placeholder="Lead Developer"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Company (optional)</label>
+                                        <input
+                                          type="text"
+                                          value={proj.company || ''}
+                                          onChange={(e) => onUpdateProject(proj.id, 'company', e.target.value)}
+                                          className="w-full px-3 py-2 md:py-2 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                                          placeholder="Company Name"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Start Date</label>
+                                        <input
+                                          type="text"
+                                          value={proj.startDate || ''}
+                                          onChange={(e) => onUpdateProject(proj.id, 'startDate', e.target.value)}
+                                          className="w-full px-3 py-2 md:py-2 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                                          placeholder="2020"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1.5">End Date</label>
+                                        <input
+                                          type="text"
+                                          value={proj.endDate || ''}
+                                          onChange={(e) => onUpdateProject(proj.id, 'endDate', e.target.value)}
+                                          className="w-full px-3 py-2 md:py-2 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                                          placeholder="2022 or Present"
+                                        />
+                                      </div>
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-gray-700 mb-1.5">Description</label>
@@ -1081,6 +1347,219 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                       <Plus className="w-4 h-4" />
                       Add Language
                     </button>
+                  </div>
+                )}
+
+                {/* Volunteer Section */}
+                {section.id === 'volunteer' && onAddVolunteer && onRemoveVolunteer && onUpdateVolunteer && (
+                  <div className="space-y-3">
+                    <SortableContext
+                      items={(resumeData.volunteer || []).map((vol) => `volunteer-${vol.id}`)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {(resumeData.volunteer || []).map((vol) => {
+                        const isExpanded = expandedVolunteerId === vol.id;
+                        return (
+                          <SortableItem key={vol.id} id={`volunteer-${vol.id}`}>
+                            {(dragHandleProps) => (
+                              <div className="border border-gray-200 rounded-lg bg-gray-50">
+                                <div className="flex items-center gap-2 p-3">
+                                  <div {...dragHandleProps} className="text-gray-400 cursor-grab active:cursor-grabbing">
+                                    <GripVertical className="w-4 h-4" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900">
+                                      {vol.organization || 'New Volunteer Experience'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {vol.role || 'Role'}
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => setExpandedVolunteerId(isExpanded ? null : vol.id)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                  >
+                                    {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                  </button>
+                                  <button
+                                    onClick={() => onRemoveVolunteer(vol.id)}
+                                    className="text-gray-400 hover:text-red-600"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                                {isExpanded && (
+                                  <div className="px-3 pb-3 space-y-2 border-t border-gray-200 pt-3">
+                                    <input
+                                      type="text"
+                                      value={vol.organization}
+                                      onChange={(e) => onUpdateVolunteer(vol.id, 'organization', e.target.value)}
+                                      placeholder="Organization"
+                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={vol.role}
+                                      onChange={(e) => onUpdateVolunteer(vol.id, 'role', e.target.value)}
+                                      placeholder="Role"
+                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    />
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <input
+                                        type="text"
+                                        value={vol.startDate}
+                                        onChange={(e) => onUpdateVolunteer(vol.id, 'startDate', e.target.value)}
+                                        placeholder="Start Date"
+                                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={vol.endDate}
+                                        onChange={(e) => onUpdateVolunteer(vol.id, 'endDate', e.target.value)}
+                                        placeholder="End Date"
+                                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                      />
+                                    </div>
+                                    <textarea
+                                      value={vol.description}
+                                      onChange={(e) => onUpdateVolunteer(vol.id, 'description', e.target.value)}
+                                      placeholder="Description"
+                                      rows={3}
+                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </SortableItem>
+                        );
+                      })}
+                    </SortableContext>
+                    <button
+                      onClick={onAddVolunteer}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Volunteer Experience
+                    </button>
+                  </div>
+                )}
+
+                {/* Custom Sections */}
+                {section.type === 'custom' && resumeData.customSections && resumeData.customSections.some(cs => cs.id === section.id) && (
+                  <div className="space-y-3">
+                    {resumeData.customSections
+                      .filter(cs => cs.id === section.id)
+                      .map((customSection) => (
+                        <div key={customSection.id} className="space-y-3">
+                          {/* Custom Section Title */}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={customSection.title}
+                              onChange={(e) => onUpdateCustomSection && onUpdateCustomSection(customSection.id, e.target.value)}
+                              placeholder="Section Title"
+                              className="flex-1 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            />
+                            {onRemoveCustomSection && (
+                              <button
+                                onClick={() => onRemoveCustomSection(customSection.id)}
+                                className="text-gray-400 hover:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Custom Section Items */}
+                          <SortableContext
+                            items={customSection.items.map((item) => `custom-${customSection.id}-${item.id}`)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {customSection.items.map((item) => {
+                              const itemKey = `${customSection.id}-${item.id}`;
+                              const isExpanded = expandedCustomSectionItemId[itemKey] === item.id;
+                              return (
+                                <SortableItem key={item.id} id={`custom-${customSection.id}-${item.id}`}>
+                                  {(dragHandleProps) => (
+                                    <div className="border border-gray-200 rounded-lg bg-gray-50">
+                                      <div className="flex items-center gap-2 p-3">
+                                        <div {...dragHandleProps} className="text-gray-400 cursor-grab active:cursor-grabbing">
+                                          <GripVertical className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="font-medium text-sm text-gray-900">
+                                            {item.title || 'New Item'}
+                                          </div>
+                                          {item.subtitle && (
+                                            <div className="text-xs text-gray-500">{item.subtitle}</div>
+                                          )}
+                                        </div>
+                                        <button
+                                          onClick={() => setExpandedCustomSectionItemId(prev => ({
+                                            ...prev,
+                                            [itemKey]: isExpanded ? null : item.id
+                                          }))}
+                                          className="text-gray-400 hover:text-gray-600"
+                                        >
+                                          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                        </button>
+                                        <button
+                                          onClick={() => onRemoveCustomSectionItem && onRemoveCustomSectionItem(customSection.id, item.id)}
+                                          className="text-gray-400 hover:text-red-600"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                      {isExpanded && (
+                                        <div className="px-3 pb-3 space-y-2 border-t border-gray-200 pt-3">
+                                          <input
+                                            type="text"
+                                            value={item.title}
+                                            onChange={(e) => onUpdateCustomSectionItem && onUpdateCustomSectionItem(customSection.id, item.id, 'title', e.target.value)}
+                                            placeholder="Title"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                          />
+                                          <input
+                                            type="text"
+                                            value={item.subtitle}
+                                            onChange={(e) => onUpdateCustomSectionItem && onUpdateCustomSectionItem(customSection.id, item.id, 'subtitle', e.target.value)}
+                                            placeholder="Subtitle"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                          />
+                                          <input
+                                            type="text"
+                                            value={item.date}
+                                            onChange={(e) => onUpdateCustomSectionItem && onUpdateCustomSectionItem(customSection.id, item.id, 'date', e.target.value)}
+                                            placeholder="Date"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                          />
+                                          <textarea
+                                            value={item.description}
+                                            onChange={(e) => onUpdateCustomSectionItem && onUpdateCustomSectionItem(customSection.id, item.id, 'description', e.target.value)}
+                                            placeholder="Description"
+                                            rows={3}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </SortableItem>
+                              );
+                            })}
+                          </SortableContext>
+                          {onAddCustomSectionItem && (
+                            <button
+                              onClick={() => onAddCustomSectionItem(customSection.id)}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add Item
+                            </button>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>

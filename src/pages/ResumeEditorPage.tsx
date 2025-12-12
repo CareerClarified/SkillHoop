@@ -664,6 +664,7 @@ export default function ResumeEditorPage() {
     { id: 'certifications', label: 'Certifications', isVisible: false },
     { id: 'projects', label: 'Projects', isVisible: false },
     { id: 'languages', label: 'Languages', isVisible: false },
+    { id: 'volunteer', label: 'Volunteer Work', isVisible: false },
   ]);
   const [resumeData, setResumeData] = useState(DEFAULT_RESUME_DATA);
   const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
@@ -994,6 +995,13 @@ export default function ResumeEditorPage() {
         }
       ]
     }));
+    // Make certifications section visible if not already
+    setSections((prev) => {
+      if (!prev.find(s => s.id === 'certifications')) {
+        return [...prev, { id: 'certifications', label: 'Certifications', isVisible: true }];
+      }
+      return prev.map(s => s.id === 'certifications' ? { ...s, isVisible: true } : s);
+    });
   };
 
   const handleRemoveCertification = (id: string) => {
@@ -1021,15 +1029,23 @@ export default function ResumeEditorPage() {
         ...(prev.projects || []),
         {
           id: newId,
-          name: "",
-          description: "",
-          technologies: [],
-          url: "",
+          title: "",
+          role: "",
+          company: "",
           startDate: "",
           endDate: "",
+          description: "",
+          url: "",
         }
       ]
     }));
+    // Make projects section visible if not already
+    setSections((prev) => {
+      if (!prev.find(s => s.id === 'projects')) {
+        return [...prev, { id: 'projects', label: 'Projects', isVisible: true }];
+      }
+      return prev.map(s => s.id === 'projects' ? { ...s, isVisible: true } : s);
+    });
   };
 
   const handleRemoveProject = (id: string) => {
@@ -1062,6 +1078,13 @@ export default function ResumeEditorPage() {
         }
       ]
     }));
+    // Make languages section visible if not already
+    setSections((prev) => {
+      if (!prev.find(s => s.id === 'languages')) {
+        return [...prev, { id: 'languages', label: 'Languages', isVisible: true }];
+      }
+      return prev.map(s => s.id === 'languages' ? { ...s, isVisible: true } : s);
+    });
   };
 
   const handleRemoveLanguage = (id: string) => {
@@ -1076,6 +1099,147 @@ export default function ResumeEditorPage() {
       ...prev,
       languages: (prev.languages || []).map((lang) =>
         lang.id === id ? { ...lang, [field]: value } : lang
+      )
+    }));
+  };
+
+  // Volunteer Handlers
+  const handleAddVolunteer = () => {
+    const newId = Date.now().toString();
+    setResumeData((prev) => ({
+      ...prev,
+      volunteer: [
+        ...(prev.volunteer || []),
+        {
+          id: newId,
+          organization: "",
+          role: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        }
+      ]
+    }));
+    // Make volunteer section visible if not already
+    setSections((prev) => {
+      if (!prev.find(s => s.id === 'volunteer')) {
+        return [...prev, { id: 'volunteer', label: 'Volunteer Work', isVisible: true }];
+      }
+      return prev.map(s => s.id === 'volunteer' ? { ...s, isVisible: true } : s);
+    });
+  };
+
+  const handleRemoveVolunteer = (id: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      volunteer: (prev.volunteer || []).filter((vol) => vol.id !== id)
+    }));
+  };
+
+  const handleUpdateVolunteer = (id: string, field: string, value: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      volunteer: (prev.volunteer || []).map((vol) =>
+        vol.id === id ? { ...vol, [field]: value } : vol
+      )
+    }));
+  };
+
+  // Custom Sections Handlers
+  const handleAddCustomSection = (title: string) => {
+    const newId = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: [
+        ...(prev.customSections || []),
+        {
+          id: newId,
+          title: title,
+          items: [],
+        }
+      ]
+    }));
+    // Also add to sections array for visibility toggle
+    setSections((prev) => [
+      ...prev,
+      {
+        id: newId,
+        label: title,
+        isVisible: true,
+      }
+    ]);
+  };
+
+  const handleRemoveCustomSection = (id: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: (prev.customSections || []).filter((cs) => cs.id !== id)
+    }));
+    setSections((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleUpdateCustomSection = (id: string, title: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: (prev.customSections || []).map((cs) =>
+        cs.id === id ? { ...cs, title } : cs
+      )
+    }));
+    setSections((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, label: title } : s))
+    );
+  };
+
+  const handleAddCustomSectionItem = (sectionId: string) => {
+    const newItemId = Date.now().toString();
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: (prev.customSections || []).map((cs) =>
+        cs.id === sectionId
+          ? {
+              ...cs,
+              items: [
+                ...cs.items,
+                {
+                  id: newItemId,
+                  title: "",
+                  subtitle: "",
+                  date: "",
+                  description: "",
+                }
+              ]
+            }
+          : cs
+      )
+    }));
+  };
+
+  const handleRemoveCustomSectionItem = (sectionId: string, itemId: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: (prev.customSections || []).map((cs) =>
+        cs.id === sectionId
+          ? {
+              ...cs,
+              items: cs.items.filter((item) => item.id !== itemId)
+            }
+          : cs
+      )
+    }));
+  };
+
+  const handleUpdateCustomSectionItem = (sectionId: string, itemId: string, field: string, value: string) => {
+    setResumeData((prev) => ({
+      ...prev,
+      customSections: (prev.customSections || []).map((cs) =>
+        cs.id === sectionId
+          ? {
+              ...cs,
+              items: cs.items.map((item) =>
+                item.id === itemId ? { ...item, [field]: value } : item
+              )
+            }
+          : cs
       )
     }));
   };
@@ -1346,6 +1510,15 @@ export default function ResumeEditorPage() {
             onAddLanguage={handleAddLanguage}
             onRemoveLanguage={handleRemoveLanguage}
             onUpdateLanguage={handleUpdateLanguage}
+            onAddVolunteer={handleAddVolunteer}
+            onRemoveVolunteer={handleRemoveVolunteer}
+            onUpdateVolunteer={handleUpdateVolunteer}
+            onAddCustomSection={handleAddCustomSection}
+            onRemoveCustomSection={handleRemoveCustomSection}
+            onUpdateCustomSection={handleUpdateCustomSection}
+            onAddCustomSectionItem={handleAddCustomSectionItem}
+            onRemoveCustomSectionItem={handleRemoveCustomSectionItem}
+            onUpdateCustomSectionItem={handleUpdateCustomSectionItem}
             resumeId={currentResumeId || undefined}
           />
         </div>

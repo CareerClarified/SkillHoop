@@ -82,13 +82,13 @@ export function convertEditorToContext(
   // Convert projects
   const projectsSection = {
     id: 'projects',
-    type: 'custom' as const,
+    type: 'projects' as const,
     title: 'Projects',
     isVisible: sections.find(s => s.id === 'projects')?.isVisible ?? false,
     items: (editorData.projects || []).map(proj => ({
       id: proj.id,
-      title: proj.name || '',
-      subtitle: proj.technologies?.join(', ') || '',
+      title: proj.title || proj.name || '',
+      subtitle: proj.company || proj.role || proj.technologies?.join(', ') || '',
       date: proj.startDate && proj.endDate ? `${proj.startDate} - ${proj.endDate}` : proj.startDate || '',
       description: proj.description || '',
     })),
@@ -97,17 +97,41 @@ export function convertEditorToContext(
   // Convert languages
   const languagesSection = {
     id: 'languages',
-    type: 'custom' as const,
+    type: 'languages' as const,
     title: 'Languages',
     isVisible: sections.find(s => s.id === 'languages')?.isVisible ?? false,
     items: (editorData.languages || []).map(lang => ({
       id: lang.id,
       title: lang.language || '',
-      subtitle: '',
+      subtitle: lang.proficiency || '',
       date: '',
-      description: lang.proficiency || '',
+      description: '',
     })),
   };
+
+  // Convert volunteer
+  const volunteerSection = {
+    id: 'volunteer',
+    type: 'volunteer' as const,
+    title: 'Volunteer Work',
+    isVisible: sections.find(s => s.id === 'volunteer')?.isVisible ?? false,
+    items: (editorData.volunteer || []).map(vol => ({
+      id: vol.id,
+      title: vol.organization || '',
+      subtitle: vol.role || '',
+      date: vol.startDate && vol.endDate ? `${vol.startDate} - ${vol.endDate}` : vol.startDate || '',
+      description: vol.description || '',
+    })),
+  };
+
+  // Convert custom sections
+  const customSections = (editorData.customSections || []).map(cs => ({
+    id: cs.id,
+    type: 'custom' as const,
+    title: cs.title,
+    isVisible: sections.find(s => s.id === cs.id)?.isVisible ?? true,
+    items: cs.items,
+  }));
 
   // Get template string
   const templateString = templateId === 2 ? 'modern' : templateId === 1 ? 'classic' : 'classic';
@@ -120,6 +144,8 @@ export function convertEditorToContext(
     certificationsSection,
     projectsSection,
     languagesSection,
+    volunteerSection,
+    ...customSections,
   ].filter(s => s.isVisible);
 
   return {
@@ -150,6 +176,12 @@ export function convertEditorToContext(
     isAISidebarOpen: false,
     targetJob: { title: '', description: '', industry: '' },
     focusedSectionId: null,
+    // Include advanced sections as arrays
+    projects: editorData.projects,
+    certifications: editorData.certifications,
+    languages: editorData.languages,
+    volunteer: editorData.volunteer,
+    customSections: editorData.customSections,
   };
 }
 
@@ -160,6 +192,56 @@ export function convertContextToEditor(contextData: ContextResumeData): EditorRe
   const experienceSection = contextData.sections.find(s => s.type === 'experience');
   const educationSection = contextData.sections.find(s => s.type === 'education');
   const skillsSection = contextData.sections.find(s => s.type === 'skills');
+  const projectsSection = contextData.sections.find(s => s.type === 'projects');
+  const certificationsSection = contextData.sections.find(s => s.type === 'certifications');
+  const languagesSection = contextData.sections.find(s => s.type === 'languages');
+  const volunteerSection = contextData.sections.find(s => s.type === 'volunteer');
+  const customSectionsFromContext = contextData.sections.filter(s => s.type === 'custom');
+
+  // Convert projects from section or array
+  const projects = contextData.projects || (projectsSection?.items.map(item => ({
+    id: item.id,
+    title: item.title || '',
+    role: '',
+    company: item.subtitle || '',
+    startDate: item.date.split(' - ')[0] || '',
+    endDate: item.date.split(' - ')[1] || '',
+    description: item.description || '',
+    url: '',
+  })) || []);
+
+  // Convert certifications from section or array
+  const certifications = contextData.certifications || (certificationsSection?.items.map(item => ({
+    id: item.id,
+    name: item.title || '',
+    issuer: item.subtitle || '',
+    date: item.date || '',
+    url: item.description || '',
+  })) || []);
+
+  // Convert languages from section or array
+  const languages = contextData.languages || (languagesSection?.items.map(item => ({
+    id: item.id,
+    language: item.title || '',
+    proficiency: (item.subtitle || 'professional') as any,
+  })) || []);
+
+  // Convert volunteer from section or array
+  const volunteer = contextData.volunteer || (volunteerSection?.items.map(item => ({
+    id: item.id,
+    organization: item.title || '',
+    role: item.subtitle || '',
+    startDate: item.date.split(' - ')[0] || '',
+    endDate: item.date.split(' - ')[1] || '',
+    description: item.description || '',
+  })) || []);
+
+  // Convert custom sections
+  const customSections = contextData.customSections || customSectionsFromContext.map(cs => ({
+    id: cs.id,
+    title: cs.title,
+    items: cs.items,
+  }));
 
   return {
     personalInfo: {
@@ -189,6 +271,11 @@ export function convertContextToEditor(contextData: ContextResumeData): EditorRe
     })) || [],
     skills: skillsSection?.items.map(item => item.title).filter(Boolean) || [],
     profilePicture: contextData.personalInfo.profilePicture,
+    projects,
+    certifications,
+    languages,
+    volunteer,
+    customSections,
   };
 }
 

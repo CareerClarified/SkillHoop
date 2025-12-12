@@ -145,6 +145,187 @@ function SectionContent({ section, settings, templateId }: { section: any; setti
     );
   }
 
+  // Handle projects section
+  if (section.type === 'projects') {
+    return (
+      <>
+        <h2
+          className={`${isMinimalist ? 'text-base font-serif mb-4 pb-1 border-b' : isCreative ? 'text-lg font-semibold mb-3' : 'text-lg font-bold uppercase mb-3 pb-2 border-b-2'}`}
+          style={isCreative ? { color: settings.accentColor } : isMinimalist ? {} : { borderColor: settings.accentColor }}
+        >
+          {section.title}
+        </h2>
+        {section.items && section.items.length > 0 ? (
+          <div className="space-y-4">
+            {section.items.map((item: any, index: number) => (
+              <div key={item.id || index} className="text-slate-700">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-bold text-slate-900">{item.title}</h3>
+                  {item.date && (
+                    <span className="text-sm text-slate-600 whitespace-nowrap ml-4">
+                      {item.date}
+                    </span>
+                  )}
+                </div>
+                {item.subtitle && (
+                  <p className="italic text-slate-700 mb-2">{item.subtitle}</p>
+                )}
+                {item.description && (
+                  <p className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-slate-500 italic text-sm">No projects yet.</p>
+        )}
+      </>
+    );
+  }
+
+  // Handle certifications section
+  if (section.type === 'certifications') {
+    return (
+      <>
+        <h2
+          className={`${isMinimalist ? 'text-base font-serif mb-4 pb-1 border-b' : isCreative ? 'text-lg font-semibold mb-3' : 'text-lg font-bold uppercase mb-3 pb-2 border-b-2'}`}
+          style={isCreative ? { color: settings.accentColor } : isMinimalist ? {} : { borderColor: settings.accentColor }}
+        >
+          {section.title}
+        </h2>
+        {section.items && section.items.length > 0 ? (
+          <div className="space-y-3">
+            {section.items.map((item: any, index: number) => (
+              <div key={item.id || index} className="text-slate-700">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-bold text-slate-900">{item.title}</h3>
+                  {item.date && (
+                    <span className="text-sm text-slate-600 whitespace-nowrap ml-4">
+                      {item.date}
+                    </span>
+                  )}
+                </div>
+                {item.subtitle && (
+                  <p className="text-slate-700 mb-1">{item.subtitle}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-slate-500 italic text-sm">No certifications yet.</p>
+        )}
+      </>
+    );
+  }
+
+  // Handle languages section
+  if (section.type === 'languages') {
+    return (
+      <>
+        <h2
+          className={`${isMinimalist ? 'text-base font-serif mb-4 pb-1 border-b' : isCreative ? 'text-lg font-semibold mb-3' : 'text-lg font-bold uppercase mb-3 pb-2 border-b-2'}`}
+          style={isCreative ? { color: settings.accentColor } : isMinimalist ? {} : { borderColor: settings.accentColor }}
+        >
+          {section.title}
+        </h2>
+        {section.items && section.items.length > 0 ? (
+          <div className="space-y-2">
+            {section.items.map((item: any, index: number) => (
+              <div key={item.id || index} className="flex justify-between items-center">
+                <span className="font-medium text-slate-900">{item.title}</span>
+                <span className="text-sm text-slate-600 capitalize">{item.subtitle}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-slate-500 italic text-sm">No languages yet.</p>
+        )}
+      </>
+    );
+  }
+
+  // Handle volunteer section
+  if (section.type === 'volunteer') {
+    return (
+      <>
+        <h2
+          className={`${isMinimalist ? 'text-base font-serif mb-4 pb-1 border-b' : isCreative ? 'text-lg font-semibold mb-3' : 'text-lg font-bold uppercase mb-3 pb-2 border-b-2'}`}
+          style={isCreative ? { color: settings.accentColor } : isMinimalist ? {} : { borderColor: settings.accentColor }}
+        >
+          {section.title}
+        </h2>
+        {section.items && section.items.length > 0 ? (
+          <div className="space-y-4">
+            {section.items.map((item: any, index: number) => (
+              <div key={item.id || index} className="text-slate-700">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-bold text-slate-900">{item.title}</h3>
+                  {item.date && (
+                    <span className="text-sm text-slate-600 whitespace-nowrap ml-4">
+                      {item.date}
+                    </span>
+                  )}
+                </div>
+                {item.subtitle && (
+                  <p className="italic text-slate-700 mb-2">{item.subtitle}</p>
+                )}
+                {item.description && (
+                  <p className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-slate-500 italic text-sm">No volunteer experience yet.</p>
+        )}
+      </>
+    );
+  }
+
+  // Handle custom sections - they use the generic format
+  if (section.type === 'custom') {
+    return (
+      <>
+        <h2
+          className={`${isMinimalist ? 'text-base font-serif mb-4 pb-1 border-b' : isCreative ? 'text-lg font-semibold mb-3' : 'text-lg font-bold uppercase mb-3 pb-2 border-b-2'}`}
+          style={isCreative ? { color: settings.accentColor } : isMinimalist ? {} : { borderColor: settings.accentColor }}
+        >
+          {section.title}
+        </h2>
+        {section.items && section.items.length > 0 ? (
+          <div className="space-y-4">
+            {section.items.map((item: any, index: number) => (
+              <div key={item.id || index} className="text-slate-700">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="font-bold text-slate-900">{item.title}</h3>
+                  {item.date && (
+                    <span className="text-sm text-slate-600 whitespace-nowrap ml-4">
+                      {item.date}
+                    </span>
+                  )}
+                </div>
+                {item.subtitle && (
+                  <p className="italic text-slate-700 mb-2">{item.subtitle}</p>
+                )}
+                {item.description && (
+                  <p className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-slate-500 italic text-sm">No items in this section yet.</p>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <h2
@@ -479,17 +660,101 @@ function ClassicTemplate({ personalInfo, sections, settings }: { personalInfo: a
 
 export default function ResumePreview() {
   const { state } = useResume();
-  const { personalInfo, sections, settings } = state;
+  const { personalInfo, sections, settings, projects, certifications, languages, volunteer, customSections } = state;
   const templateId = settings.templateId || 'classic';
+
+  // Convert advanced sections arrays to sections format for rendering
+  const allSections = [...sections];
+
+  // Add projects section if exists
+  if (projects && projects.length > 0) {
+    allSections.push({
+      id: 'projects',
+      title: 'Projects',
+      type: 'projects',
+      isVisible: true,
+      items: projects.map(proj => ({
+        id: proj.id,
+        title: proj.title || proj.name || 'Untitled Project',
+        subtitle: proj.company || proj.role || '',
+        date: `${proj.startDate || ''}${proj.endDate ? ` - ${proj.endDate}` : ''}`,
+        description: proj.description,
+      })),
+    });
+  }
+
+  // Add certifications section if exists
+  if (certifications && certifications.length > 0) {
+    allSections.push({
+      id: 'certifications',
+      title: 'Certifications',
+      type: 'certifications',
+      isVisible: true,
+      items: certifications.map(cert => ({
+        id: cert.id,
+        title: cert.name,
+        subtitle: cert.issuer,
+        date: cert.date,
+        description: cert.url || '',
+      })),
+    });
+  }
+
+  // Add languages section if exists
+  if (languages && languages.length > 0) {
+    allSections.push({
+      id: 'languages',
+      title: 'Languages',
+      type: 'languages',
+      isVisible: true,
+      items: languages.map(lang => ({
+        id: lang.id,
+        title: lang.language,
+        subtitle: lang.proficiency,
+        date: '',
+        description: '',
+      })),
+    });
+  }
+
+  // Add volunteer section if exists
+  if (volunteer && volunteer.length > 0) {
+    allSections.push({
+      id: 'volunteer',
+      title: 'Volunteer Work',
+      type: 'volunteer',
+      isVisible: true,
+      items: volunteer.map(vol => ({
+        id: vol.id,
+        title: vol.organization,
+        subtitle: vol.role,
+        date: `${vol.startDate}${vol.endDate ? ` - ${vol.endDate}` : ''}`,
+        description: vol.description,
+      })),
+    });
+  }
+
+  // Add custom sections if exist
+  if (customSections && customSections.length > 0) {
+    customSections.forEach(customSection => {
+      allSections.push({
+        id: customSection.id,
+        title: customSection.title,
+        type: 'custom',
+        isVisible: true,
+        items: customSection.items,
+      });
+    });
+  }
 
   return (
     <div className="min-h-full flex items-center justify-center">
       {templateId === 'minimalist' ? (
-        <MinimalistTemplate personalInfo={personalInfo} sections={sections} settings={settings} />
+        <MinimalistTemplate personalInfo={personalInfo} sections={allSections} settings={settings} />
       ) : templateId === 'creative' ? (
-        <CreativeTemplate personalInfo={personalInfo} sections={sections} settings={settings} />
+        <CreativeTemplate personalInfo={personalInfo} sections={allSections} settings={settings} />
       ) : (
-        <ClassicTemplate personalInfo={personalInfo} sections={sections} settings={settings} />
+        <ClassicTemplate personalInfo={personalInfo} sections={allSections} settings={settings} />
       )}
     </div>
   );
