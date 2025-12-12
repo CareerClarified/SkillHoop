@@ -4,6 +4,7 @@
  */
 
 import { ResumeData } from '../types/resume';
+import { saveVersion } from './resumeVersionHistory';
 
 export interface SavedResume {
   id: string;
@@ -69,6 +70,18 @@ export function saveResume(resume: ResumeData, title?: string): string {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredResumes));
     setCurrentResumeId(resumeId);
+    
+    // Save version history
+    try {
+      const isUpdate = resume.id && resumes.find(r => r.id === resume.id);
+      saveVersion(resumeId, savedResume.data, {
+        createdBy: isUpdate ? 'manual' : 'initial',
+        changeSummary: isUpdate ? 'Resume updated' : 'Resume created',
+      });
+    } catch (error) {
+      console.error('Error saving version history:', error);
+      // Don't fail the save if version history fails
+    }
     
     return resumeId;
   } catch (error) {
