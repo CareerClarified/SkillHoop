@@ -203,13 +203,13 @@ export default function ExperienceEditor() {
                   Description
                 </label>
                 <AIAssistantButton
-                  currentText={formData.description}
+                  currentText={formData.description || ''}
                   onAccept={(newText) => handleInputChange('description', newText)}
                 />
               </div>
               <textarea
                 id="description"
-                value={formData.description}
+                value={formData.description || ''}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 rows={6}
                 className="w-full bg-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/50 px-2 py-1.5 resize-none"
