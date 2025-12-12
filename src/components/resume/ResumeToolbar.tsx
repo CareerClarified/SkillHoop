@@ -10,6 +10,7 @@ import ExportModal from './ExportModal';
 import VersionHistoryPanel from './VersionHistoryPanel';
 import ResumeAnalytics from './ResumeAnalytics';
 import ImportModal from './ImportModal';
+import ATSScannerPanel from './ATSScannerPanel';
 
 interface JobApplication {
   id: string;
@@ -28,6 +29,7 @@ export default function ResumeToolbar() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showATSScanner, setShowATSScanner] = useState(false);
   
   // Target Job state
   const [jobs, setJobs] = useState<JobApplication[]>([]);
@@ -298,6 +300,20 @@ export default function ResumeToolbar() {
           </button>
         )}
 
+        {/* ATS Scan Button */}
+        <button
+          onClick={() => setShowATSScanner(true)}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            showATSScanner
+              ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100'
+              : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400'
+          }`}
+          title="Scan resume against job description for ATS compatibility"
+        >
+          <Target className="w-4 h-4" />
+          <span>ATS Scan</span>
+        </button>
+
         {/* Analytics Button */}
         {currentResumeId && (
           <button
@@ -433,6 +449,13 @@ export default function ResumeToolbar() {
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImport={handleImport}
+      />
+
+      {/* ATS Scanner Panel */}
+      <ATSScannerPanel
+        isOpen={showATSScanner}
+        onClose={() => setShowATSScanner(false)}
+        resume={state}
       />
     </>
   );
