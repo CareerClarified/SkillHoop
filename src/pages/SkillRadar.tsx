@@ -476,31 +476,12 @@ export default function SkillRadar() {
                   category: s.category,
                   demandScore: s.demandScore
                 })),
-                      action: 'develop-skills'
-                    });
-                    navigate('/dashboard/learning-path');
-                  }}
-                  className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-white/90 transition-all flex items-center gap-2"
-                >
-                  Develop Skills
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setShowWorkflowPrompt(false)}
-                  className="px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
-                >
-                  Continue Later
-                </button>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowWorkflowPrompt(false)}
-              className="text-white/70 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+                action: 'develop-skills'
+              });
+              navigate('/dashboard/learning-path');
+            }
+          }}
+        />
       )}
 
       {/* Header */}
