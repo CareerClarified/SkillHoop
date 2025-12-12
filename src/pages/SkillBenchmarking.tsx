@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart3, TrendingUp, Target, Users, DollarSign, ChevronDown,
@@ -20,7 +20,10 @@ import {
   Cell
 } from 'recharts';
 
-// Types
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
 interface TargetRole {
   id: string;
   title: string;
@@ -55,7 +58,10 @@ interface MarketDemand {
   ratio: number;
 }
 
-// Sample data
+// ============================================================================
+// CONSTANTS & MOCK DATA
+// ============================================================================
+
 const targetRoles: TargetRole[] = [
   {
     id: 'senior-dev',
@@ -143,7 +149,18 @@ const radarData = skillComparisonData.map(s => ({
   'Top Performers': s.topPerformers
 }));
 
-// Helper functions
+// Tab configuration
+const tabs = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'skills', label: 'Skill Gaps', icon: Target },
+  { id: 'salary', label: 'Market Value', icon: DollarSign },
+  { id: 'demand', label: 'Market Demand', icon: TrendingUp }
+];
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 const formatSalary = (value: number): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -178,7 +195,10 @@ const getTrendIcon = (trend: string) => {
   }
 };
 
-// Custom tooltip components
+// ============================================================================
+// CUSTOM TOOLTIP COMPONENTS
+// ============================================================================
+
 const SalaryTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -211,13 +231,9 @@ const SkillGapTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-// Tab configuration
-const tabs = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'skills', label: 'Skill Gaps', icon: Target },
-  { id: 'salary', label: 'Market Value', icon: DollarSign },
-  { id: 'demand', label: 'Market Demand', icon: TrendingUp }
-];
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export default function SkillBenchmarking() {
   const navigate = useNavigate();
@@ -231,6 +247,26 @@ export default function SkillBenchmarking() {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [comparisonView, setComparisonView] = useState<'bar' | 'radar'>('bar');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Calculate metrics (must be before useEffect that uses them)
+  const overallMatch = useMemo(() => {
+    return Math.round(
+      skillComparisonData.reduce((acc, s) => acc + (s.yourLevel / s.topPerformers) * 100, 0) / skillComparisonData.length
+    );
+  }, []);
+
+  const criticalSkillsGap = useMemo(() => {
+    return skillComparisonData
+      .filter(s => s.importance === 'critical')
+      .reduce((acc, s) => acc + s.gap, 0) / skillComparisonData.filter(s => s.importance === 'critical').length;
+  }, []);
+
+  const salaryPotential = useMemo(() => {
+    return Math.round(
+      ((selectedRole.avgSalary - salaryTrendData[salaryTrendData.length - 1].yourRole) / 
+      salaryTrendData[salaryTrendData.length - 1].yourRole) * 100
+    );
+  }, [selectedRole]);
 
   // Check for workflow context on mount
   useEffect(() => {
@@ -296,20 +332,6 @@ export default function SkillBenchmarking() {
       }
     }
   }, [selectedRole, overallMatch, salaryPotential]);
-
-  // Calculate metrics
-  const overallMatch = Math.round(
-    skillComparisonData.reduce((acc, s) => acc + (s.yourLevel / s.topPerformers) * 100, 0) / skillComparisonData.length
-  );
-  
-  const criticalSkillsGap = skillComparisonData
-    .filter(s => s.importance === 'critical')
-    .reduce((acc, s) => acc + s.gap, 0) / skillComparisonData.filter(s => s.importance === 'critical').length;
-
-  const salaryPotential = Math.round(
-    ((selectedRole.avgSalary - salaryTrendData[salaryTrendData.length - 1].yourRole) / 
-    salaryTrendData[salaryTrendData.length - 1].yourRole) * 100
-  );
 
   return (
     <FeatureGate requiredTier="ultimate">
