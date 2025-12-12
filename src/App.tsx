@@ -27,6 +27,7 @@ const BrandAudit = lazy(() => import('./pages/BrandAudit'));
 const ContentEngine = lazy(() => import('./pages/ContentEngine'));
 const AICareerPortfolio = lazy(() => import('./pages/AICareerPortfolio'));
 const CareerEventScout = lazy(() => import('./pages/CareerEventScout'));
+const EventScout = lazy(() => import('./pages/EventScout'));
 const LinkedInOptimizer = lazy(() => import('./pages/LinkedInOptimizer'));
 const UpskillingDashboard = lazy(() => import('./pages/UpskillingDashboard'));
 const SkillRadar = lazy(() => import('./pages/SkillRadar'));
@@ -113,6 +114,7 @@ function App() {
               <Route path="content-engine" element={<ContentEngine />} />
               <Route path="portfolio" element={<AICareerPortfolio />} />
               <Route path="career-event-scout" element={<CareerEventScout />} />
+              <Route path="event-scout" element={<EventScout />} />
               <Route path="linkedin-optimizer" element={<LinkedInOptimizer />} />
               
               {/* Upskilling Routes */}
