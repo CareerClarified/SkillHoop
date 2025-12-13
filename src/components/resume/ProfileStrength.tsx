@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { calculateProfileStrength, type ProfileStrengthResult } from '../../lib/profileStrength';
 import type { ResumeData } from '../../types/resume';
@@ -9,36 +9,42 @@ interface ProfileStrengthProps {
 
 export default function ProfileStrength({ resumeData }: ProfileStrengthProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const strengthResult: ProfileStrengthResult = calculateProfileStrength(resumeData);
+  
+  // Memoize the expensive calculation - only recalculate when resumeData changes
+  const strengthResult: ProfileStrengthResult = useMemo(() => {
+    return calculateProfileStrength(resumeData);
+  }, [resumeData]);
+  
   const { score, suggestions } = strengthResult;
 
-  // Determine strength label and color
-  const getStrengthLabel = (score: number): { label: string; color: string; bgColor: string; progressColor: string } => {
-    if (score >= 80) {
-      return {
-        label: 'Excellent',
-        color: 'text-green-700',
-        bgColor: 'bg-green-50',
-        progressColor: 'bg-green-500',
-      };
-    } else if (score >= 50) {
-      return {
-        label: 'Good',
-        color: 'text-yellow-700',
-        bgColor: 'bg-yellow-50',
-        progressColor: 'bg-yellow-500',
-      };
-    } else {
-      return {
-        label: 'Needs Improvement',
-        color: 'text-red-700',
-        bgColor: 'bg-red-50',
-        progressColor: 'bg-red-500',
-      };
-    }
-  };
-
-  const strengthInfo = getStrengthLabel(score);
+  // Memoize strength label calculation
+  const strengthInfo = useMemo(() => {
+    const getStrengthLabel = (score: number): { label: string; color: string; bgColor: string; progressColor: string } => {
+      if (score >= 80) {
+        return {
+          label: 'Excellent',
+          color: 'text-green-700',
+          bgColor: 'bg-green-50',
+          progressColor: 'bg-green-500',
+        };
+      } else if (score >= 50) {
+        return {
+          label: 'Good',
+          color: 'text-yellow-700',
+          bgColor: 'bg-yellow-50',
+          progressColor: 'bg-yellow-500',
+        };
+      } else {
+        return {
+          label: 'Needs Improvement',
+          color: 'text-red-700',
+          bgColor: 'bg-red-50',
+          progressColor: 'bg-red-500',
+        };
+      }
+    };
+    return getStrengthLabel(score);
+  }, [score]);
 
   return (
     <div className={`border-b border-gray-200 ${strengthInfo.bgColor} transition-colors`}>

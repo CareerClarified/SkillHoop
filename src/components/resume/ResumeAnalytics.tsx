@@ -48,11 +48,15 @@ export default function ResumeAnalytics({ resumeData, resumeId, currentATSScore 
     return calculated;
   }, [resumeData, currentATSScore]);
 
-  // Calculate section completeness
-  useEffect(() => {
-    const completeness = getSectionCompleteness(resumeData);
-    setSectionCompleteness(completeness);
+  // Memoize section completeness calculation
+  const sectionCompletenessMemo = useMemo(() => {
+    return getSectionCompleteness(resumeData);
   }, [resumeData]);
+
+  // Update state only when memoized value changes
+  useEffect(() => {
+    setSectionCompleteness(sectionCompletenessMemo);
+  }, [sectionCompletenessMemo]);
 
   // Load score history from Supabase
   useEffect(() => {
@@ -75,13 +79,13 @@ export default function ResumeAnalytics({ resumeData, resumeId, currentATSScore 
     }
   };
 
-  // Prepare section completeness data for chart
-  const sectionData = [
+  // Memoize section data for chart
+  const sectionData = useMemo(() => [
     { name: 'Summary', value: sectionCompleteness.summary },
     { name: 'Experience', value: sectionCompleteness.experience },
     { name: 'Education', value: sectionCompleteness.education },
     { name: 'Skills', value: sectionCompleteness.skills },
-  ];
+  ], [sectionCompleteness]);
 
   // Generate Quick Wins insights
   const quickWins = useMemo(() => {

@@ -33,6 +33,7 @@ type ResumeAction =
 interface ResumeContextState {
   state: ResumeData;
   dispatch: React.Dispatch<ResumeAction>;
+  isSaving?: boolean; // Optional saving indicator
 }
 
 // Create context
@@ -182,7 +183,8 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
   const [state, dispatch] = useReducer(resumeReducer, initialData || getInitialState());
   const [isLoading, setIsLoading] = useState(true);
   const [hasConflict, setHasConflict] = useState(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialMount = useRef(true);
 
   // Load resume from Supabase on mount (Cloud-First strategy)
@@ -321,12 +323,13 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     }
 
     // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set new timer to save after 500ms
-    debounceTimerRef.current = setTimeout(async () => {
+    // Set new timer to save after 1000ms (1 second) - debounced save
+    saveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
       try {
         // Validate resume data before saving
         const validation = validateResume(state);
@@ -392,19 +395,28 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
         } catch (localError) {
           console.error('Error saving to LocalStorage:', localError);
         }
+      } finally {
+        setIsSaving(false);
       }
-    }, 500);
+    }, 1000); // Increased to 1000ms (1 second) for better performance
 
     // Cleanup function
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     };
   }, [state, isLoading]);
 
+  // Expose saving state to context consumers
+  const contextValue: ResumeContextState = {
+    state,
+    dispatch,
+    isSaving,
+  };
+
   return (
-    <ResumeContext.Provider value={{ state, dispatch }}>
+    <ResumeContext.Provider value={contextValue}>
       {children}
     </ResumeContext.Provider>
   );

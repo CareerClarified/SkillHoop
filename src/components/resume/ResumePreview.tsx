@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useResume } from '../../context/ResumeContext';
 import { Edit } from '../ui/Icons';
 
@@ -353,8 +353,8 @@ function SectionContent({ section, settings, templateId }: { section: any; setti
   );
 }
 
-// Minimalist Template Component
-function MinimalistTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
+// Minimalist Template Component (memoized to prevent unnecessary re-renders)
+const MinimalistTemplate = React.memo(function MinimalistTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
   const contactInfo = [
     personalInfo.email,
     personalInfo.phone,
@@ -437,10 +437,10 @@ function MinimalistTemplate({ personalInfo, sections, settings }: { personalInfo
       )}
     </div>
   );
-}
+});
 
-// Creative Template Component
-function CreativeTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
+// Creative Template Component (memoized to prevent unnecessary re-renders)
+const CreativeTemplate = React.memo(function CreativeTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
   const contactInfo = [
     personalInfo.email,
     personalInfo.phone,
@@ -549,10 +549,10 @@ function CreativeTemplate({ personalInfo, sections, settings }: { personalInfo: 
       </div>
     </div>
   );
-}
+});
 
-// Classic/Default Template Component
-function ClassicTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
+// Classic/Default Template Component (memoized to prevent unnecessary re-renders)
+const ClassicTemplate = React.memo(function ClassicTemplate({ personalInfo, sections, settings }: { personalInfo: any; sections: any[]; settings: any }) {
   const contactInfo = [
     personalInfo.email,
     personalInfo.phone,
@@ -656,96 +656,100 @@ function ClassicTemplate({ personalInfo, sections, settings }: { personalInfo: a
         )}
       </div>
   );
-}
+});
 
-export default function ResumePreview() {
+function ResumePreview() {
   const { state } = useResume();
   const { personalInfo, sections, settings, projects, certifications, languages, volunteer, customSections } = state;
   const templateId = settings.templateId || 'classic';
 
-  // Convert advanced sections arrays to sections format for rendering
-  const allSections = [...sections];
+  // Memoize all sections calculation - only recalculate when relevant data changes
+  const allSections = useMemo(() => {
+    const result = [...sections];
 
-  // Add projects section if exists
-  if (projects && projects.length > 0) {
-    allSections.push({
-      id: 'projects',
-      title: 'Projects',
-      type: 'projects',
-      isVisible: true,
-      items: projects.map(proj => ({
-        id: proj.id,
-        title: proj.title || proj.name || 'Untitled Project',
-        subtitle: proj.company || proj.role || '',
-        date: `${proj.startDate || ''}${proj.endDate ? ` - ${proj.endDate}` : ''}`,
-        description: proj.description,
-      })),
-    });
-  }
-
-  // Add certifications section if exists
-  if (certifications && certifications.length > 0) {
-    allSections.push({
-      id: 'certifications',
-      title: 'Certifications',
-      type: 'certifications',
-      isVisible: true,
-      items: certifications.map(cert => ({
-        id: cert.id,
-        title: cert.name,
-        subtitle: cert.issuer,
-        date: cert.date,
-        description: cert.url || '',
-      })),
-    });
-  }
-
-  // Add languages section if exists
-  if (languages && languages.length > 0) {
-    allSections.push({
-      id: 'languages',
-      title: 'Languages',
-      type: 'languages',
-      isVisible: true,
-      items: languages.map(lang => ({
-        id: lang.id,
-        title: lang.language,
-        subtitle: lang.proficiency,
-        date: '',
-        description: '',
-      })),
-    });
-  }
-
-  // Add volunteer section if exists
-  if (volunteer && volunteer.length > 0) {
-    allSections.push({
-      id: 'volunteer',
-      title: 'Volunteer Work',
-      type: 'volunteer',
-      isVisible: true,
-      items: volunteer.map(vol => ({
-        id: vol.id,
-        title: vol.organization,
-        subtitle: vol.role,
-        date: `${vol.startDate}${vol.endDate ? ` - ${vol.endDate}` : ''}`,
-        description: vol.description,
-      })),
-    });
-  }
-
-  // Add custom sections if exist
-  if (customSections && customSections.length > 0) {
-    customSections.forEach(customSection => {
-      allSections.push({
-        id: customSection.id,
-        title: customSection.title,
-        type: 'custom',
+    // Add projects section if exists
+    if (projects && projects.length > 0) {
+      result.push({
+        id: 'projects',
+        title: 'Projects',
+        type: 'projects',
         isVisible: true,
-        items: customSection.items,
+        items: projects.map(proj => ({
+          id: proj.id,
+          title: proj.title || proj.name || 'Untitled Project',
+          subtitle: proj.company || proj.role || '',
+          date: `${proj.startDate || ''}${proj.endDate ? ` - ${proj.endDate}` : ''}`,
+          description: proj.description || '',
+        })),
       });
-    });
-  }
+    }
+
+    // Add certifications section if exists
+    if (certifications && certifications.length > 0) {
+      result.push({
+        id: 'certifications',
+        title: 'Certifications',
+        type: 'certifications',
+        isVisible: true,
+        items: certifications.map(cert => ({
+          id: cert.id,
+          title: cert.name || '',
+          subtitle: cert.issuer || '',
+          date: cert.date || '',
+          description: cert.url || '',
+        })),
+      });
+    }
+
+    // Add languages section if exists
+    if (languages && languages.length > 0) {
+      result.push({
+        id: 'languages',
+        title: 'Languages',
+        type: 'languages',
+        isVisible: true,
+        items: languages.map(lang => ({
+          id: lang.id,
+          title: lang.language || '',
+          subtitle: lang.proficiency || '',
+          date: '',
+          description: '',
+        })),
+      });
+    }
+
+    // Add volunteer section if exists
+    if (volunteer && volunteer.length > 0) {
+      result.push({
+        id: 'volunteer',
+        title: 'Volunteer Work',
+        type: 'volunteer',
+        isVisible: true,
+        items: volunteer.map(vol => ({
+          id: vol.id,
+          title: vol.organization || '',
+          subtitle: vol.role || '',
+          date: `${vol.startDate || ''}${vol.endDate ? ` - ${vol.endDate}` : ''}`,
+          description: vol.description || '',
+        })),
+      });
+    }
+
+    // Add custom sections if exist
+    if (customSections && customSections.length > 0) {
+      customSections.forEach(customSection => {
+        result.push({
+          id: customSection.id,
+          title: customSection.title || '',
+          type: 'custom',
+          isVisible: true,
+          items: customSection.items || [],
+        });
+      });
+    }
+
+    return result;
+  }, [sections, projects, certifications, languages, volunteer, customSections]);
 
   return (
     <div className="min-h-full flex items-center justify-center">
@@ -759,3 +763,7 @@ export default function ResumePreview() {
     </div>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders when unrelated state changes
+// This prevents re-rendering when opening/closing sidebar or other UI interactions
+export default React.memo(ResumePreview);

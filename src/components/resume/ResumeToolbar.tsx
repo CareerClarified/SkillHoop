@@ -20,7 +20,7 @@ interface JobApplication {
 }
 
 export default function ResumeToolbar() {
-  const { state, dispatch } = useResume();
+  const { state, dispatch, isSaving } = useResume();
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -334,9 +334,12 @@ export default function ResumeToolbar() {
         {/* Save Button - Secondary */}
         <button
           onClick={handleSave}
+          disabled={isSaving}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
             saveStatus === 'saved'
               ? 'bg-green-50 text-green-700 border border-green-200'
+              : isSaving
+              ? 'bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed'
               : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400'
           }`}
         >
@@ -344,6 +347,11 @@ export default function ResumeToolbar() {
             <>
               <CheckCircle2 className="w-4 h-4" />
               <span>Saved!</span>
+            </>
+          ) : isSaving ? (
+            <>
+              <Clock className="w-4 h-4 animate-spin" />
+              <span>Saving...</span>
             </>
           ) : (
             <>
