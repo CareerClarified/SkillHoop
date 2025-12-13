@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { supabase } from '../lib/supabase';
 
 export interface ResumeAnalysisResult {
   score: number; // 0-100
@@ -16,58 +16,38 @@ export async function analyzeResume(
   resumeData: any,
   jobDescription: string
 ): Promise<ResumeAnalysisResult> {
-  // Check if API key exists before initializing
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey || apiKey.trim() === '') {
-    throw new Error('OpenAI API Key is missing. Please check your environment variables.');
+  // Get current user ID for authentication and usage tracking
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error('User must be authenticated to analyze resume');
   }
 
-  // Initialize OpenAI client
-  // Note: dangerouslyAllowBrowser is set to true for development only
-  // In production, API calls should be made through a backend server
-  const openai = new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true, // Dev only - should use backend in production
-  });
-
-  const systemPrompt =
-    'You are an expert ATS (Applicant Tracking System) optimizer. Analyze the resume JSON against the provided Job Description.';
-
-  const userPrompt = `Resume Data (JSON):
-${JSON.stringify(resumeData, null, 2)}
-
-Job Description:
-${jobDescription}
-
-Please analyze the resume against the job description and provide:
-1. A score from 0-100 indicating how well the resume matches the job description
-2. An array of exactly 3 specific, actionable improvements
-3. An array of critical missing keywords from the job description that should be added to the resume
-
-Return your response in the following JSON format:
-{
-  "score": <number 0-100>,
-  "feedback": [<string>, <string>, <string>],
-  "missingKeywords": [<string>, ...]
-}`;
+  if (!jobDescription || jobDescription.trim() === '') {
+    throw new Error('Job description is required for resume analysis');
+  }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: 'json_object' },
+    const response = await fetch('/api/generateResume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        resumeData,
+        jobDescription,
+        userId,
+        type: 'analyze',
+      }),
     });
 
-    const responseContent = completion.choices[0]?.message?.content;
-
-    if (!responseContent) {
-      throw new Error('No response content received from OpenAI');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
+      throw new Error(errorData.error || `Failed to analyze resume: ${response.statusText}`);
     }
 
-    const analysisResult: ResumeAnalysisResult = JSON.parse(responseContent);
+    const analysisResult: ResumeAnalysisResult = await response.json();
 
     // Validate the response structure
     if (
@@ -75,13 +55,16 @@ Return your response in the following JSON format:
       !Array.isArray(analysisResult.feedback) ||
       !Array.isArray(analysisResult.missingKeywords)
     ) {
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format from API');
     }
 
     return analysisResult;
   } catch (error) {
     console.error('Error analyzing resume:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to analyze resume. Please try again.');
   }
 }
 
