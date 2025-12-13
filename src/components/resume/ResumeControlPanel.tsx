@@ -4,6 +4,7 @@ import { useIsMobile } from '../../hooks/useMediaQuery';
 import RealTimeAISuggestions from './RealTimeAISuggestions';
 import SmartKeywordSuggestions from './SmartKeywordSuggestions';
 import ResumeAnalytics from './ResumeAnalytics';
+import ProfileStrength from './ProfileStrength';
 import {
   DndContext,
   closestCenter,
@@ -2314,9 +2315,14 @@ export default function ResumeControlPanel({
 
   return (
     <div id="resume-control-panel" className="flex flex-col md:flex-row h-full">
-      {/* Mobile: Horizontal Scrollable Tabs */}
+      {/* Mobile: Profile Strength and Horizontal Scrollable Tabs */}
       {isMobile ? (
-        <div className="w-full bg-white border-b border-gray-200 overflow-x-auto shrink-0">
+        <>
+          {/* Profile Strength for Mobile */}
+          <div className="w-full bg-white border-b border-gray-200 shrink-0">
+            <ProfileStrength resumeData={resumeData} />
+          </div>
+          <div className="w-full bg-white border-b border-gray-200 overflow-x-auto shrink-0">
           <div className="flex min-w-max">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -2340,11 +2346,19 @@ export default function ResumeControlPanel({
               );
             })}
           </div>
-        </div>
+          </div>
+        </>
       ) : (
         /* Desktop: Vertical Sidebar */
-        <aside className="w-[72px] bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 shrink-0">
-          {tabs.map((tab) => {
+        <div className="flex shrink-0">
+          {/* Profile Strength Panel - Expanded width */}
+          <div className="w-[280px] bg-white border-r border-gray-200">
+            <ProfileStrength resumeData={resumeData} />
+          </div>
+          
+          {/* Icon Tabs Sidebar */}
+          <aside className="w-[72px] bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
+            {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -2381,7 +2395,8 @@ export default function ResumeControlPanel({
               </button>
             );
           })}
-        </aside>
+          </aside>
+        </div>
       )}
 
       {/* Content Area */}
