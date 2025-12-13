@@ -325,13 +325,16 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     // Clear existing timer
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
+      // Reset saving state when timer is cleared (user is still typing)
+      setIsSaving(false);
     }
 
+    // Set isSaving to true IMMEDIATELY for user feedback
+    setIsSaving(true);
+
     // Set new timer to save after 1000ms (1 second) - debounced save
-    // Note: isSaving will be set to true when the timeout executes
     saveTimeoutRef.current = setTimeout(async () => {
-      setIsSaving(true);
-      console.log('ResumeContext: Starting save, isSaving set to true');
+      console.log('ResumeContext: Starting save, isSaving is already true');
       try {
         // Validate resume data before saving
         const validation = validateResume(state);
