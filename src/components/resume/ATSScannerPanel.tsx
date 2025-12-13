@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Target, Search, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { ResumeData } from '../../types/resume';
-import { scanResume, type ATSScanResult } from '../../lib/atsScanner';
+import { scanResume, resumeDataToText, type ATSScanResult } from '../../lib/atsScanner';
 
 interface ATSScannerPanelProps {
   isOpen: boolean;
@@ -22,9 +22,12 @@ export default function ATSScannerPanel({ isOpen, onClose, resume }: ATSScannerP
 
     setIsScanning(true);
     try {
+      // Convert ResumeData to plain text
+      const resumeText = resumeDataToText(resume);
+      
       // Small delay to show loading state
       setTimeout(() => {
-        const result = scanResume(resume, jobDescription);
+        const result = scanResume(resumeText, jobDescription);
         setScanResult(result);
         setIsScanning(false);
       }, 300);
@@ -104,7 +107,7 @@ export default function ATSScannerPanel({ isOpen, onClose, resume }: ATSScannerP
                 ) : (
                   <>
                     <Search className="w-4 h-4" />
-                    <span>Scan Resume</span>
+                    <span>Scan Now</span>
                   </>
                 )}
               </button>
@@ -148,6 +151,31 @@ export default function ATSScannerPanel({ isOpen, onClose, resume }: ATSScannerP
                     </div>
                   </div>
                 </div>
+
+                {/* Matched Keywords */}
+                {scanResult.matchedKeywords.length > 0 && (
+                  <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <h3 className="text-lg font-semibold text-green-900">
+                        Matched Keywords ({scanResult.matchedKeywords.length})
+                      </h3>
+                    </div>
+                    <p className="text-sm text-green-700 mb-3">
+                      These important keywords from the job description were found in your resume:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {scanResult.matchedKeywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-white border border-green-300 text-green-700 rounded-full text-sm font-medium"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Missing Keywords */}
                 {scanResult.missingKeywords.length > 0 && (

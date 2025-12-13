@@ -2,14 +2,16 @@ import { ResumeData } from '../types/resume';
 
 export interface ATSScanResult {
   score: number;
+  matchedKeywords: string[];
   missingKeywords: string[];
   formattingIssues: string[];
 }
 
 /**
  * Convert ResumeData to plain text for scanning
+ * This is a helper function for components that need to convert ResumeData to text
  */
-function resumeToText(resume: ResumeData): string {
+export function resumeDataToText(resume: ResumeData): string {
   const parts: string[] = [];
 
   // Personal Info
@@ -75,7 +77,7 @@ function resumeToText(resume: ResumeData): string {
     });
   }
 
-  return parts.join(' ').toLowerCase();
+  return parts.join(' ');
 }
 
 /**
@@ -153,27 +155,26 @@ function extractKeywords(jobDescription: string): string[] {
 }
 
 /**
- * Check formatting issues in resume
+ * Check formatting issues in resume text using regex patterns
  */
-function checkFormatting(resume: ResumeData, resumeText: string): string[] {
+function checkFormatting(resumeText: string): string[] {
   const issues: string[] = [];
+  const lowerText = resumeText.toLowerCase();
 
-  // Check for missing contact info
-  if (!resume.personalInfo.email && !resume.personalInfo.phone) {
-    issues.push('Missing contact information (email or phone)');
-  } else if (!resume.personalInfo.email) {
+  // Check for email address
+  const emailPattern = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/;
+  if (!emailPattern.test(resumeText)) {
     issues.push('Missing email address');
-  } else if (!resume.personalInfo.phone) {
+  }
+
+  // Check for phone number (various formats)
+  const phonePattern = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
+  if (!phonePattern.test(resumeText)) {
     issues.push('Missing phone number');
   }
 
-  // Check for missing name
-  if (!resume.personalInfo.fullName || resume.personalInfo.fullName.trim().length === 0) {
-    issues.push('Missing full name');
-  }
-
   // Check for very short resume (might be incomplete)
-  if (resumeText.length < 200) {
+  if (resumeText.trim().length < 200) {
     issues.push('Resume is very short (may be incomplete)');
   }
 
@@ -184,19 +185,16 @@ function checkFormatting(resume: ResumeData, resumeText: string): string[] {
     issues.push('High number of special characters detected (may affect ATS parsing)');
   }
 
-  // Check for missing sections
-  const hasExperience = resume.sections.some(s => s.type === 'experience' && s.items.length > 0);
-  const hasEducation = resume.sections.some(s => s.type === 'education' && s.items.length > 0);
-  const hasSkills = resume.sections.some(s => s.type === 'skills' && s.items.length > 0);
-
-  if (!hasExperience) {
-    issues.push('Missing work experience section');
-  }
-  if (!hasEducation) {
-    issues.push('Missing education section');
-  }
-  if (!hasSkills) {
-    issues.push('Missing skills section');
+  // Check for standard section headers (Experience, Education, Skills, etc.)
+  const sectionHeaders = [
+    /(experience|work experience|employment|professional experience)/i,
+    /(education|academic background|qualifications)/i,
+    /(skills|technical skills|competencies)/i,
+  ];
+  
+  const foundSections = sectionHeaders.filter(pattern => pattern.test(resumeText));
+  if (foundSections.length < 2) {
+    issues.push('Missing standard section headers (Experience, Education, Skills, etc.)');
   }
 
   return issues;
@@ -204,37 +202,47 @@ function checkFormatting(resume: ResumeData, resumeText: string): string[] {
 
 /**
  * Main function to scan resume against job description
+ * @param resumeText - Plain text version of the resume
+ * @param jobDescription - Job description text to match against
+ * @returns ATS scan results with score, matched/missing keywords, and formatting issues
  */
-export function scanResume(resume: ResumeData, jobDescription: string): ATSScanResult {
+export function scanResume(resumeText: string, jobDescription: string): ATSScanResult {
   if (!jobDescription || jobDescription.trim().length === 0) {
     return {
       score: 0,
+      matchedKeywords: [],
       missingKeywords: [],
       formattingIssues: [],
     };
   }
 
-  // Convert resume to text
-  const resumeText = resumeToText(resume);
+  // Normalize resume text to lowercase for matching
+  const resumeTextLower = resumeText.toLowerCase();
 
   // Extract keywords from job description
   const jobKeywords = extractKeywords(jobDescription);
 
-  // Find missing keywords
+  // Find matched and missing keywords
+  const matchedKeywords: string[] = [];
   const missingKeywords: string[] = [];
+  
   jobKeywords.forEach(keyword => {
-    // Check if keyword exists in resume (case-insensitive, allows partial matches for compound terms)
     const keywordLower = keyword.toLowerCase();
     const keywordParts = keywordLower.split(/\s+/);
     
     // Try exact match first
-    if (!resumeText.includes(keywordLower)) {
+    if (resumeTextLower.includes(keywordLower)) {
+      matchedKeywords.push(keyword);
+    } else {
       // For multi-word keywords, check if all parts are present (even if not together)
-      const allPartsPresent = keywordParts.every(part => 
-        resumeText.includes(part) || resumeText.includes(part.replace(/[^\w]/g, ''))
-      );
+      const allPartsPresent = keywordParts.every(part => {
+        const cleanPart = part.replace(/[^\w]/g, '');
+        return resumeTextLower.includes(part) || resumeTextLower.includes(cleanPart);
+      });
       
-      if (!allPartsPresent) {
+      if (allPartsPresent) {
+        matchedKeywords.push(keyword);
+      } else {
         missingKeywords.push(keyword);
       }
     }
@@ -242,20 +250,20 @@ export function scanResume(resume: ResumeData, jobDescription: string): ATSScanR
 
   // Calculate score based on keyword matches
   // Score = (matched keywords / total keywords) * 80 + formatting score (max 20)
-  const matchedKeywords = jobKeywords.length - missingKeywords.length;
   const keywordScore = jobKeywords.length > 0 
-    ? (matchedKeywords / jobKeywords.length) * 80 
+    ? (matchedKeywords.length / jobKeywords.length) * 80 
     : 0;
 
   // Check formatting
-  const formattingIssues = checkFormatting(resume, resumeText);
+  const formattingIssues = checkFormatting(resumeText);
   const formattingScore = Math.max(0, 20 - (formattingIssues.length * 5)); // Deduct 5 points per issue
 
   const totalScore = Math.round(keywordScore + formattingScore);
 
   return {
     score: Math.min(100, Math.max(0, totalScore)),
-    missingKeywords: missingKeywords.slice(0, 20), // Limit to top 20 missing keywords
+    matchedKeywords: matchedKeywords.slice(0, 30), // Top 30 matched keywords
+    missingKeywords: missingKeywords.slice(0, 20), // Top 20 missing keywords
     formattingIssues,
   };
 }

@@ -300,7 +300,7 @@ export default function ResumeToolbar() {
           </button>
         )}
 
-        {/* ATS Scan Button */}
+        {/* Job Scan Button */}
         <button
           onClick={() => setShowATSScanner(true)}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
@@ -311,7 +311,7 @@ export default function ResumeToolbar() {
           title="Scan resume against job description for ATS compatibility"
         >
           <Target className="w-4 h-4" />
-          <span>ATS Scan</span>
+          <span>Job Scan</span>
         </button>
 
         {/* Analytics Button */}
