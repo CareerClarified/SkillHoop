@@ -37,6 +37,23 @@ export default function ResumeToolbar() {
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [showJobDropdown, setShowJobDropdown] = useState(false);
 
+  // Sync local saveStatus with isSaving from context to ensure re-renders
+  useEffect(() => {
+    // Debug: Log when isSaving changes
+    if (isSaving !== undefined) {
+      console.log('ResumeToolbar: isSaving changed to', isSaving);
+    }
+    
+    if (isSaving) {
+      setSaveStatus('saving');
+    } else if (saveStatus === 'saving') {
+      // When saving completes, show saved status briefly
+      setSaveStatus('saved');
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSaving]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setCurrentResumeId(getCurrentResumeId());
     loadJobs();
@@ -332,34 +349,43 @@ export default function ResumeToolbar() {
         )}
 
         {/* Save Button - Secondary */}
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            saveStatus === 'saved'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : isSaving
-              ? 'bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed'
-              : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400'
-          }`}
-        >
-          {saveStatus === 'saved' ? (
-            <>
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Saved!</span>
-            </>
-          ) : isSaving ? (
-            <>
-              <Clock className="w-4 h-4 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>{isUpdating ? 'Update' : 'Save'}</span>
-            </>
+        <div className="flex items-center">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              saveStatus === 'saved'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : isSaving
+                ? 'bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed'
+                : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400'
+            }`}
+          >
+            {saveStatus === 'saved' ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Saved!</span>
+              </>
+            ) : isSaving ? (
+              <>
+                <Clock className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>{isUpdating ? 'Update' : 'Save'}</span>
+              </>
+            )}
+          </button>
+          {/* Visual indicator next to Save button */}
+          {isSaving && (
+            <span className="text-sm text-gray-500 animate-pulse ml-2 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Saving...
+            </span>
           )}
-        </button>
+        </div>
 
         {/* AI Assistant Button - Secondary */}
         <button

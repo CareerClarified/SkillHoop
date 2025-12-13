@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useState, useMemo, ReactNode } from 'react';
 import { ResumeData, PersonalInfo, FormattingSettings, ResumeSection, TargetJob, INITIAL_RESUME_STATE } from '../types/resume';
 import { getCurrentResumeId, loadResume, saveResume } from '../lib/resumeStorage';
 import { supabase } from '../lib/supabase';
@@ -328,8 +328,10 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     }
 
     // Set new timer to save after 1000ms (1 second) - debounced save
+    // Note: isSaving will be set to true when the timeout executes
     saveTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
+      console.log('ResumeContext: Starting save, isSaving set to true');
       try {
         // Validate resume data before saving
         const validation = validateResume(state);
@@ -343,6 +345,7 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
           alert(`Please fix errors before saving:\n\n${errorSummary}${validation.errorMessages && validation.errorMessages.length > 3 ? '\n...and more' : ''}`);
           
           // Do not save to Supabase - prevent database corruption
+          setIsSaving(false);
           return;
         }
 
@@ -397,6 +400,7 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
         }
       } finally {
         setIsSaving(false);
+        console.log('ResumeContext: Save completed, isSaving set to false');
       }
     }, 1000); // Increased to 1000ms (1 second) for better performance
 
@@ -408,12 +412,12 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     };
   }, [state, isLoading]);
 
-  // Expose saving state to context consumers
-  const contextValue: ResumeContextState = {
+  // Memoize context value to ensure re-renders when isSaving changes
+  const contextValue: ResumeContextState = useMemo(() => ({
     state,
     dispatch,
     isSaving,
-  };
+  }), [state, dispatch, isSaving]);
 
   return (
     <ResumeContext.Provider value={contextValue}>
