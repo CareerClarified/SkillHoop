@@ -2350,15 +2350,8 @@ export default function ResumeControlPanel({
         </>
       ) : (
         /* Desktop: Vertical Sidebar */
-        <div className="flex shrink-0">
-          {/* Profile Strength Panel - Expanded width */}
-          <div className="w-[280px] bg-white border-r border-gray-200">
-            <ProfileStrength resumeData={resumeData} />
-          </div>
-          
-          {/* Icon Tabs Sidebar */}
-          <aside className="w-[72px] bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
-            {tabs.map((tab) => {
+        <aside className="w-[72px] bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 shrink-0">
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -2395,13 +2388,20 @@ export default function ResumeControlPanel({
               </button>
             );
           })}
-          </aside>
-        </div>
+        </aside>
       )}
 
-      {/* Content Area */}
-      <div className="flex-1 bg-white overflow-y-auto">
-        {renderTabContent()}
+      {/* Right Content Area */}
+      <div className="flex-1 flex flex-col bg-white">
+        {/* Profile Strength */}
+        <div className="shrink-0 border-b border-gray-200">
+          <ProfileStrength resumeData={resumeData} />
+        </div>
+        
+        {/* Scrollable Forms */}
+        <div className="flex-1 overflow-y-auto">
+          {renderTabContent()}
+        </div>
       </div>
     </div>
   );
