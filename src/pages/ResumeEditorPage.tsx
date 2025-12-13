@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Download, Save, FileText, History, CheckCircle2, Upload, Share2, Edit, Eye } from 'lucide-react';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { useEditorTour } from '../components/onboarding/EditorTour';
+import { useEditorTour } from '../components/onboarding/useEditorTour';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import ResumeControlPanel, {
