@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2, X, Wand2, Loader2, Info, CheckCircle2, Copy, BarChart3 } from 'lucide-react';
+import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, FileText, Plus, Eye, EyeOff, Trash2, X, Wand2, Loader2, Info, CheckCircle2, Copy, BarChart3, FileCheck } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import RealTimeAISuggestions from './RealTimeAISuggestions';
 import SmartKeywordSuggestions from './SmartKeywordSuggestions';
 import ResumeAnalytics from './ResumeAnalytics';
 import ProfileStrength from './ProfileStrength';
+import ReviewPanel from './ReviewPanel';
 import {
   DndContext,
   closestCenter,
@@ -22,7 +23,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-type TabId = 'sections' | 'templates' | 'formatting' | 'copilot' | 'analytics';
+type TabId = 'sections' | 'templates' | 'formatting' | 'copilot' | 'analytics' | 'review';
 
 interface Tab {
   id: TabId;
@@ -2273,6 +2274,7 @@ export default function ResumeControlPanel({
     { id: 'templates', label: 'Templates', icon: <LayoutTemplate className="w-5 h-5" /> },
     { id: 'formatting', label: 'Formatting', icon: <Palette className="w-5 h-5" /> },
     { id: 'copilot', label: 'AI Copilot', icon: <Bot className="w-5 h-5" /> },
+    { id: 'review', label: 'Review', icon: <FileCheck className="w-5 h-5" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" /> },
   ];
 
@@ -2306,6 +2308,8 @@ export default function ResumeControlPanel({
         return <FormattingTab values={data.formatting} onChange={onFormattingChange} />;
       case 'copilot':
         return <AICopilotTab atsScore={data.atsScore} atsAnalysis={data.atsAnalysis} onAIAction={onAIAction} onAIGenerate={onAIGenerate} isGeneratingAI={isGeneratingAI} resumeData={resumeData} />;
+      case 'review':
+        return <ReviewPanel resumeData={resumeData} />;
       case 'analytics':
         return <ResumeAnalytics resumeData={resumeData} resumeId={resumeId} currentATSScore={data.atsScore} />;
       default:
