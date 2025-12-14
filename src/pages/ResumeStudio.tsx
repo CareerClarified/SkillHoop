@@ -33,6 +33,7 @@ import ResumeEditor from '../components/resume/ResumeEditor';
 import ResumePreview from '../components/resume/ResumePreview';
 import ResumeToolbar from '../components/resume/ResumeToolbar';
 import AICopilot from '../components/resume/AICopilot';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 import { WorkflowTracking } from '../lib/workflowTracking';
 // Icons removed - not used
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
@@ -718,22 +719,24 @@ function ResumeStudioContent() {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden flex flex-col lg:flex-row bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50">
-        {/* Left Column - Editor */}
-        <div className="w-full lg:w-96 bg-white overflow-y-auto border-r-0 lg:border-r border-slate-200 no-print">
-          <ResumeEditor />
-        </div>
-
-        {/* Right Column - Preview */}
-        <div className="flex-1 bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50 overflow-y-auto p-4 sm:p-8">
-          <ResumePreview />
-        </div>
-
-        {/* AI Sidebar - Conditional */}
-        {state.isAISidebarOpen && (
-          <div className="w-full lg:w-80 border-l-0 lg:border-l border-t lg:border-t-0 bg-[#eff2fd] shadow-xl transition-all duration-300 ease-in-out no-print">
-            <AICopilot />
+        <ErrorBoundary>
+          {/* Left Column - Editor */}
+          <div className="w-full lg:w-96 bg-white overflow-y-auto border-r-0 lg:border-r border-slate-200 no-print">
+            <ResumeEditor />
           </div>
-        )}
+
+          {/* Right Column - Preview */}
+          <div className="flex-1 bg-gradient-to-br from-indigo-100 via-purple-50 to-teal-50 overflow-y-auto p-4 sm:p-8">
+            <ResumePreview />
+          </div>
+
+          {/* AI Sidebar - Conditional */}
+          {state.isAISidebarOpen && (
+            <div className="w-full lg:w-80 border-l-0 lg:border-l border-t lg:border-t-0 bg-[#eff2fd] shadow-xl transition-all duration-300 ease-in-out no-print">
+              <AICopilot />
+            </div>
+          )}
+        </ErrorBoundary>
       </main>
     </div>
   );
