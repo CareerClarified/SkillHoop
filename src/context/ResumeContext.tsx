@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef, useState, useMemo, useCallback, ReactNode } from 'react';
+import { toast } from 'sonner';
 import { ResumeData, PersonalInfo, FormattingSettings, ResumeSection, TargetJob, INITIAL_RESUME_STATE } from '../types/resume';
 import { getCurrentResumeId, loadResume, saveResume } from '../lib/resumeStorage';
 import { supabase } from '../lib/supabase';
@@ -485,13 +486,20 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
         const validation = validateResume(state);
         
         if (!validation.success) {
-          // Validation failed - log errors and show alert
+          // Validation failed - log errors and show toast
           console.error('Resume validation failed:', validation.errorMessages);
           
           // Show user-friendly error message
-          const errorSummary = validation.errorMessages?.slice(0, 3).join('\n') || 'Invalid resume data';
-          const errorMessage = `Invalid Resume Data\n\nPlease fix the following errors before saving:\n\n${errorSummary}${validation.errorMessages && validation.errorMessages.length > 3 ? '\n\n...and more errors. Please check all fields.' : ''}\n\nReview the highlighted fields and correct any issues.`;
-          alert(errorMessage);
+          const errorSummary = validation.errorMessages?.slice(0, 3).join(', ') || 'Invalid resume data';
+          const hasMoreErrors = validation.errorMessages && validation.errorMessages.length > 3;
+          const errorDescription = hasMoreErrors 
+            ? `${errorSummary}, and ${validation.errorMessages.length - 3} more error(s). Please check all fields.`
+            : errorSummary;
+          
+          toast.error('Invalid Resume Data', {
+            description: errorDescription,
+            duration: 6000,
+          });
           
           // Do not save to Supabase - prevent database corruption
           setIsSaving(false);

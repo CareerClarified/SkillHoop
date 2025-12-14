@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { Layers, LayoutTemplate, Palette, Bot, GripVertical, ChevronRight, ChevronDown, Sparkles, Plus, Eye, EyeOff, Trash2, X, Wand2, Loader2, CheckCircle2, Copy, BarChart3, FileCheck } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import RealTimeAISuggestions from './RealTimeAISuggestions';
 import SmartKeywordSuggestions from './SmartKeywordSuggestions';
 import ResumeAnalytics from './ResumeAnalytics';
@@ -1932,7 +1934,7 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
       }));
     } catch (error) {
       console.error('Error generating gap explanation:', error);
-      alert('Failed to generate explanation. Please try again.');
+      toast.error('Failed to generate explanation. Please try again.');
     } finally {
       setLoadingGapId(null);
     }
@@ -1941,10 +1943,10 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
   // Function to copy explanation to clipboard
   const handleCopyExplanation = (explanation: string) => {
     navigator.clipboard.writeText(explanation).then(() => {
-      alert('Explanation copied to clipboard!');
+      toast.success('Explanation copied to clipboard!');
     }).catch((err) => {
       console.error('Failed to copy:', err);
-      alert('Failed to copy to clipboard');
+      toast.error('Failed to copy to clipboard');
     });
   };
 
@@ -1959,7 +1961,7 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
     
     // Validate selection
     if (!selectedText || selectedText.trim().length < 5) {
-      alert('Please highlight some text in your resume first (at least 5 characters).');
+      toast.error('Please highlight some text in your resume first (at least 5 characters).');
       return;
     }
     
@@ -1986,7 +1988,7 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
       setEnhancedText(data.enhancedText);
     } catch (error) {
       console.error('Error enhancing text:', error);
-      alert(error instanceof Error ? error.message : 'Failed to enhance text. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to enhance text. Please try again.');
     } finally {
       setIsEnhancingText(false);
     }
@@ -1997,10 +1999,10 @@ function AICopilotTab({ atsScore, atsAnalysis, onAIAction, onAIGenerate, isGener
     if (!enhancedText) return;
     
     navigator.clipboard.writeText(enhancedText).then(() => {
-      alert('Enhanced text copied to clipboard!');
+      toast.success('Enhanced text copied to clipboard!');
     }).catch((err) => {
       console.error('Failed to copy:', err);
-      alert('Failed to copy to clipboard');
+      toast.error('Failed to copy to clipboard');
     });
   };
 

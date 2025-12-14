@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import LogoLoader from './components/ui/LogoLoader';
 
@@ -57,6 +58,7 @@ function LoadingFallback() {
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" richColors closeButton />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* Landing page - outside DashboardLayout */}
