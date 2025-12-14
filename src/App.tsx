@@ -1,8 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import LogoLoader from './components/ui/LogoLoader';
 
 // Lazy load components for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -46,7 +46,7 @@ function LoadingFallback() {
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <div className="text-center">
         <div className="flex items-center justify-center mb-4">
-          <LogoLoader className="w-16 h-16" />
+          <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
         </div>
         <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
         <p className="text-indigo-500 text-sm">Loading Application</p>
