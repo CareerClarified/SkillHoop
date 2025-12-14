@@ -2303,7 +2303,7 @@ export default function ResumeControlPanel({
             loadingExperienceId={loadingExperienceId}
             onDragEnd={onDragEnd}
             fullResumeText={fullResumeText}
-            targetJobDescription={_targetJobDescription}
+            targetJobDescription={targetJobDescription}
           />
         );
       case 'templates':
