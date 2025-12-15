@@ -150,13 +150,17 @@ function ResumeStudioContent() {
             if (profile.education && profile.education.length > 0) {
               const eduSection = state.sections.find(s => s.type === 'education');
               if (eduSection) {
-                const newEduItems = profile.education.map(edu => ({
-                  id: generateId(),
-                  title: `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`,
-                  subtitle: edu.school || '',
-                  date: edu.endYear || edu.startYear || '',
-                  description: '',
-                }));
+                const newEduItems = profile.education.map(edu => {
+                  const schoolName = (edu as any).schoolName || (edu as any).subtitle || edu.school || '';
+                  const degree = (edu as any).degree || (edu as any).title || '';
+                  return {
+                    id: generateId(),
+                    title: schoolName,
+                    subtitle: `${degree}${edu.field ? ` in ${edu.field}` : ''}`,
+                    date: edu.endYear || edu.startYear || '',
+                    description: '',
+                  };
+                });
                 
                 dispatch({
                   type: 'UPDATE_SECTION',
@@ -175,13 +179,17 @@ function ResumeStudioContent() {
                     type: 'education',
                     title: 'Education',
                     isVisible: true,
-                    items: profile.education.map(edu => ({
-                      id: generateId(),
-                      title: `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`,
-                      subtitle: edu.school || '',
-                      date: edu.endYear || edu.startYear || '',
-                      description: '',
-                    })),
+                    items: profile.education.map(edu => {
+                      const schoolName = (edu as any).schoolName || (edu as any).subtitle || edu.school || '';
+                      const degree = (edu as any).degree || (edu as any).title || '';
+                      return {
+                        id: generateId(),
+                        title: schoolName,
+                        subtitle: `${degree}${edu.field ? ` in ${edu.field}` : ''}`,
+                        date: edu.endYear || edu.startYear || '',
+                        description: '',
+                      };
+                    }),
                   },
                 });
               }
@@ -191,22 +199,29 @@ function ResumeStudioContent() {
             if (profile.skills && profile.skills.length > 0) {
               const skillsSection = state.sections.find(s => s.type === 'skills');
               if (skillsSection) {
-                const existingSkills = skillsSection.items.map((item: SectionItem) => item.title || '').filter(Boolean);
+                const existingSkills = skillsSection.items as SectionItem[];
+                const existingSkillNames = existingSkills.map((item: SectionItem) => item.title || '').filter(Boolean);
                 import('../lib/skillDeduplication').then(({ mergeAndDeduplicateSkills }) => {
-                  const uniqueSkills = mergeAndDeduplicateSkills(existingSkills, profile.skills);
+                  const uniqueSkills = mergeAndDeduplicateSkills(existingSkillNames, profile.skills);
                   
                   dispatch({
                     type: 'UPDATE_SECTION',
                     payload: {
                       id: skillsSection.id,
                       updates: {
-                        items: uniqueSkills.map((skill, idx) => ({
-                          id: `skill_${idx}`,
-                          title: skill,
-                          subtitle: '',
-                          date: '',
-                          description: '',
-                        })),
+                        items: uniqueSkills.map((skill) => {
+                          const existing = existingSkills.find((s) => s.title === skill);
+                          if (existing) {
+                            return existing;
+                          }
+                          return {
+                            id: generateId(),
+                            title: skill,
+                            subtitle: '',
+                            date: '',
+                            description: '',
+                          };
+                        }),
                       },
                     },
                   });
