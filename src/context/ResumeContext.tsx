@@ -57,6 +57,7 @@ interface ResumeContextState {
   state: ResumeData;
   dispatch: React.Dispatch<ResumeAction>;
   isSaving?: boolean; // Optional saving indicator
+  saveError?: string | null;
   canUndo: boolean; // Whether undo is available
   canRedo: boolean; // Whether redo is available
   undo: () => void; // Undo function
@@ -306,6 +307,7 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialMount = useRef(true);
   const isUndoRedoRef = useRef(false);
@@ -570,6 +572,7 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
           });
           
           // Do not save to Supabase - prevent database corruption
+          setSaveError('Validation failed: Missing required fields');
           isSavingRef.current = false;
           setIsSaving(false);
           return;
@@ -577,6 +580,7 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
 
           // Validation passed - proceed with save
         const validatedState = validation.data || currentState;
+        setSaveError(null);
 
         // Check if user is logged in
         const { data: { user } } = await supabase.auth.getUser();
@@ -723,11 +727,12 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     state,
     dispatch,
     isSaving,
+    saveError,
     canUndo: canUndo(history),
     canRedo: canRedo(history),
     undo: handleUndo,
     redo: handleRedo,
-  }), [state, dispatch, isSaving, history, handleUndo, handleRedo]);
+  }), [state, dispatch, isSaving, saveError, history, handleUndo, handleRedo]);
 
   return (
     <ResumeContext.Provider value={contextValue}>

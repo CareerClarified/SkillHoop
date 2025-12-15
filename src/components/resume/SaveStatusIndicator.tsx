@@ -12,11 +12,16 @@ interface SaveStatusIndicatorProps {
 }
 
 export default function SaveStatusIndicator({ className = '' }: SaveStatusIndicatorProps) {
-  const { isSaving } = useResume();
+  const { isSaving, saveError } = useResume();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
 
   useEffect(() => {
+    if (saveError) {
+      setSaveStatus('error');
+      return;
+    }
+
     if (isSaving) {
       setSaveStatus('saving');
     } else if (saveStatus === 'saving') {
@@ -25,15 +30,21 @@ export default function SaveStatusIndicator({ className = '' }: SaveStatusIndica
       // Clear saved status after 3 seconds
       setTimeout(() => setSaveStatus(null), 3000);
     }
-  }, [isSaving, saveStatus]);
+  }, [isSaving, saveStatus, saveError]);
 
-  if (!isSaving && !saveStatus && !lastSaved) {
+  if (!isSaving && !saveStatus && !lastSaved && !saveError) {
     return null; // Don't show anything if nothing has happened
   }
 
   return (
     <div className={`flex items-center gap-2 text-xs ${className}`}>
-      {isSaving || saveStatus === 'saving' ? (
+      {saveError || saveStatus === 'error' ? (
+        <>
+          <AlertCircle className="w-3 h-3 text-red-600" />
+          <span className="text-red-600">Not saved</span>
+          {saveError && <span className="text-red-500">{saveError}</span>}
+        </>
+      ) : isSaving || saveStatus === 'saving' ? (
         <>
           <Clock className="w-3 h-3 animate-spin text-indigo-600" />
           <span className="text-slate-600">Auto-saving...</span>
@@ -47,11 +58,6 @@ export default function SaveStatusIndicator({ className = '' }: SaveStatusIndica
               {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-        </>
-      ) : saveStatus === 'error' ? (
-        <>
-          <AlertCircle className="w-3 h-3 text-red-600" />
-          <span className="text-red-600">Save failed</span>
         </>
       ) : null}
     </div>

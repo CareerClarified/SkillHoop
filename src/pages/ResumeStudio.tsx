@@ -60,6 +60,10 @@ function ResumeStudioContent() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { state, dispatch } = useResume();
+  const normalizeYearToMonth = (value?: string) => {
+    if (!value) return value || '';
+    return /^\d{4}$/.test(value) ? `${value}-01` : value;
+  };
   
   // Workflow state - use custom hook for reactive context
   const { workflowContext, updateContext } = useWorkflowContext();
@@ -108,13 +112,17 @@ function ResumeStudioContent() {
               const expSection = state.sections.find(s => s.type === 'experience');
               if (expSection) {
                 // Update existing experience section
-                const newExpItems = profile.experience.map(exp => ({
-                  id: generateId(),
-                  title: exp.title || '',
-                  subtitle: exp.company || '',
-                  date: createDateRangeString(exp.startDate, exp.endDate || 'Present'),
-                  description: exp.description || '',
-                }));
+                const newExpItems = profile.experience.map(exp => {
+                  const startDate = normalizeYearToMonth(exp.startDate);
+                  const endDate = normalizeYearToMonth(exp.endDate || 'Present');
+                  return {
+                    id: generateId(),
+                    title: exp.title || '',
+                    subtitle: exp.company || '',
+                    date: createDateRangeString(startDate, endDate || 'Present'),
+                    description: exp.description || '',
+                  };
+                });
                 
                 dispatch({
                   type: 'UPDATE_SECTION',
@@ -134,13 +142,17 @@ function ResumeStudioContent() {
                     type: 'experience',
                     title: 'Experience',
                     isVisible: true,
-                    items: profile.experience.map(exp => ({
-                      id: generateId(),
-                      title: exp.title || '',
-                      subtitle: exp.company || '',
-                      date: createDateRangeString(exp.startDate || '', exp.endDate || 'Present'),
-                      description: exp.description || '',
-                    })),
+                    items: profile.experience.map(exp => {
+                      const startDate = normalizeYearToMonth(exp.startDate || '');
+                      const endDate = normalizeYearToMonth(exp.endDate || 'Present');
+                      return {
+                        id: generateId(),
+                        title: exp.title || '',
+                        subtitle: exp.company || '',
+                        date: createDateRangeString(startDate, endDate || 'Present'),
+                        description: exp.description || '',
+                      };
+                    }),
                   },
                 });
               }
@@ -153,11 +165,13 @@ function ResumeStudioContent() {
                 const newEduItems = profile.education.map(edu => {
                   const schoolName = (edu as any).schoolName || (edu as any).subtitle || edu.school || '';
                   const degree = (edu as any).degree || (edu as any).title || '';
+                  const startDate = normalizeYearToMonth(edu.startYear || '');
+                  const endDate = normalizeYearToMonth(edu.endYear || '');
                   return {
                     id: generateId(),
                     title: schoolName,
                     subtitle: `${degree}${edu.field ? ` in ${edu.field}` : ''}`,
-                    date: edu.endYear || edu.startYear || '',
+                    date: endDate || startDate || '',
                     description: '',
                   };
                 });
@@ -182,11 +196,13 @@ function ResumeStudioContent() {
                     items: profile.education.map(edu => {
                       const schoolName = (edu as any).schoolName || (edu as any).subtitle || edu.school || '';
                       const degree = (edu as any).degree || (edu as any).title || '';
+                      const startDate = normalizeYearToMonth(edu.startYear || '');
+                      const endDate = normalizeYearToMonth(edu.endYear || '');
                       return {
                         id: generateId(),
                         title: schoolName,
                         subtitle: `${degree}${edu.field ? ` in ${edu.field}` : ''}`,
-                        date: edu.endYear || edu.startYear || '',
+                        date: endDate || startDate || '',
                         description: '',
                       };
                     }),
