@@ -4,6 +4,7 @@
  * Note: This is now a fallback/cache layer. Primary storage is Supabase.
  */
 
+import { toast } from 'sonner';
 import { ResumeData } from '../types/resume';
 import { saveVersion } from './resumeVersionHistory';
 import { safeSetItem, safeGetItem, safeRemoveItem, StoragePriority } from './localStorageQuota';
@@ -203,6 +204,19 @@ export async function saveResume(resume: ResumeData, title?: string): Promise<st
     );
     
     if (!result.success) {
+      // Check if it's a quota error
+      const errorStr = result.error || '';
+      const isQuotaError = errorStr.toLowerCase().includes('quota') || 
+                           errorStr.toLowerCase().includes('full') ||
+                           errorStr.toLowerCase().includes('storage');
+      
+      if (isQuotaError) {
+        // Show user-friendly toast notification
+        toast.error('Local storage is full. Please delete old versions or download a backup.');
+      }
+      
+      // Still throw error so caller knows save failed
+      // But the app state remains valid - user can still download PDF
       const errorMessage = getResumeErrorMessage(result.error || 'Storage quota exceeded', 'SAVE_RESUME');
       throw new Error(errorMessage);
     }

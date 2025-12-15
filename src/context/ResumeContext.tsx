@@ -554,7 +554,14 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
               } else {
                 const currentId = getCurrentResumeId();
                 if (currentId && validatedState.id) {
-                  await saveResume(validatedState);
+                  try {
+                    await saveResume(validatedState);
+                  } catch (saveError) {
+                    // saveResume already shows toast for quota errors
+                    // Just log the error - don't crash the app
+                    // The resume state is still valid, user can download PDF
+                    console.error('Error saving resume to storage:', saveError);
+                  }
                 }
               }
             } catch (localError) {
@@ -577,7 +584,14 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
           } else {
             const currentId = getCurrentResumeId();
             if (currentId && validatedState.id) {
-              await saveResume(validatedState);
+              try {
+                await saveResume(validatedState);
+              } catch (saveError) {
+                // saveResume already shows toast for quota errors
+                // Just log the error - don't crash the app
+                // The resume state is still valid, user can download PDF
+                console.error('Error saving resume to storage:', saveError);
+              }
             }
           }
         }
