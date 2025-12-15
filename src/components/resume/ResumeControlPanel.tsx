@@ -647,14 +647,14 @@ function SectionsTab({ sections, resumeData, onToggle, onContentChange, onAddExp
                       Professional Summary
                     </label>
                     <textarea
-                      value={resumeData.personalInfo.summary}
+                      value={resumeData.summary}
                       onChange={(e) => onContentChange('summary', e.target.value)}
                       rows={8}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       placeholder="Passionate designer with 5+ years of experience..."
                     />
                     <RealTimeAISuggestions
-                      currentText={resumeData.personalInfo.summary}
+                      currentText={resumeData.summary}
                       onApplySuggestion={(suggestion) => onContentChange('summary', suggestion)}
                       onEnhanceText={(enhanced) => onContentChange('summary', enhanced)}
                       sectionName="Professional Summary"
