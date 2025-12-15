@@ -1,6 +1,17 @@
 /**
  * Brand Analysis Engine
- * Core analysis logic using OpenAI for comprehensive brand scoring and recommendations
+ * 
+ * This module provides comprehensive brand analysis functionality for professional profiles.
+ * It analyzes multiple aspects of a user's professional brand (resume, LinkedIn, GitHub, portfolio)
+ * and generates:
+ * 
+ * - Brand scores for each component and an overall weighted score
+ * - Personalized recommendations for improvement
+ * - Brand archetype identification
+ * - Industry benchmark comparisons
+ * 
+ * The engine uses a combination of rule-based analysis and OpenAI GPT models to provide
+ * actionable insights for improving professional brand presence across platforms.
  */
 
 import type { ResumeData } from '../types/resume';
@@ -62,7 +73,17 @@ export interface BrandAnalysisResult {
 }
 
 /**
- * Analyze resume data
+ * Analyze resume data and generate score with strengths/weaknesses
+ * 
+ * Performs rule-based analysis of resume completeness and quality:
+ * - Checks personal info completeness (name, email, phone, location)
+ * - Evaluates professional summary quality
+ * - Assesses skills quantity and diversity
+ * - Reviews experience entries and quantifiable achievements
+ * - Checks education and projects presence
+ * 
+ * @param resumeData - The resume data to analyze, or null if no data available
+ * @returns Promise resolving to AnalysisResult with score (0-100), strengths, weaknesses, and details
  */
 export async function analyzeResume(resumeData: ResumeData | null): Promise<AnalysisResult> {
   if (!resumeData) {
@@ -153,7 +174,16 @@ export async function analyzeResume(resumeData: ResumeData | null): Promise<Anal
 }
 
 /**
- * Analyze LinkedIn profile
+ * Analyze LinkedIn profile data
+ * 
+ * Evaluates LinkedIn profile completeness and quality based on:
+ * - Profile completeness score
+ * - Presence of headline and summary
+ * - Experience entries count
+ * - Skills listed
+ * 
+ * @param linkedInData - The LinkedIn profile data to analyze, or null if no data available
+ * @returns Promise resolving to AnalysisResult with score, strengths, weaknesses, and details
  */
 export async function analyzeLinkedIn(linkedInData: LinkedInProfileData | null): Promise<AnalysisResult> {
   if (!linkedInData) {
@@ -201,7 +231,17 @@ export async function analyzeLinkedIn(linkedInData: LinkedInProfileData | null):
 }
 
 /**
- * Analyze GitHub profile
+ * Analyze GitHub profile data
+ * 
+ * Evaluates GitHub presence based on:
+ * - Repository count and activity
+ * - README quality across repositories
+ * - Documentation quality
+ * - Recent activity levels
+ * - Repository stars and forks
+ * 
+ * @param githubData - The GitHub analysis data to evaluate, or null if no data available
+ * @returns Promise resolving to AnalysisResult with score, strengths, weaknesses, and details
  */
 export async function analyzeGitHub(githubData: GitHubAnalysis | null): Promise<AnalysisResult> {
   if (!githubData) {
@@ -260,7 +300,16 @@ export async function analyzeGitHub(githubData: GitHubAnalysis | null): Promise<
 }
 
 /**
- * Analyze portfolio
+ * Analyze portfolio website
+ * 
+ * Evaluates portfolio website quality based on:
+ * - Website accessibility
+ * - Presence of essential sections (contact info, projects, about)
+ * - Mobile responsiveness
+ * - Overall quality score from portfolio analyzer
+ * 
+ * @param portfolioData - The portfolio analysis data to evaluate, or null if no data available
+ * @returns Promise resolving to AnalysisResult with score, strengths, weaknesses, and details
  */
 export async function analyzePortfolio(portfolioData: PortfolioAnalysis | null): Promise<AnalysisResult> {
   if (!portfolioData) {
@@ -334,7 +383,16 @@ export async function analyzePortfolio(portfolioData: PortfolioAnalysis | null):
 }
 
 /**
- * Generate brand score from all analyses
+ * Generate overall brand score from individual component analyses
+ * 
+ * Calculates a weighted average of all component scores:
+ * - Resume: 30% weight
+ * - LinkedIn: 30% weight
+ * - GitHub: 20% weight
+ * - Portfolio: 20% weight
+ * 
+ * @param analyses - Object containing score for each component (resume, linkedin, github, portfolio)
+ * @returns BrandScore object with overall score (0-100) and individual component scores
  */
 export function generateBrandScore(analyses: {
   resume: { score: number };
@@ -374,7 +432,15 @@ export function generateBrandScore(analyses: {
 }
 
 /**
- * Generate recommendations using OpenAI
+ * Generate personalized brand improvement recommendations using OpenAI
+ * 
+ * Uses GPT-4o-mini to analyze brand scores and generate 5-8 actionable recommendations
+ * prioritized by impact and addressing identified weaknesses.
+ * 
+ * @param analyses - Analysis results for each component with scores, strengths, and weaknesses
+ * @param _details - Additional details (unused but kept for potential future use)
+ * @returns Promise resolving to array of Recommendation objects with priority, category, and actionable steps
+ * @throws Error if API call fails or response cannot be parsed
  */
 export async function generateRecommendations(
   analyses: {
@@ -486,6 +552,14 @@ Generate 5-8 specific, actionable recommendations prioritized by impact and addr
 
 /**
  * Determine brand archetype using OpenAI
+ * 
+ * Uses GPT-4o-mini to identify the user's professional brand archetype based on
+ * their brand scores across all platforms (e.g., "The Innovator", "The Leader", "The Specialist").
+ * 
+ * @param brandScore - Overall and component brand scores
+ * @param _analyses - Additional analysis data (unused but kept for potential future use)
+ * @returns Promise resolving to BrandArchetype with name, description, and traits
+ * @throws Error if API call fails, but returns default archetype on error
  */
 export async function determineBrandArchetype(
   brandScore: BrandScore,
@@ -556,7 +630,17 @@ Generate an appropriate brand archetype that reflects this professional's positi
 }
 
 /**
- * Calculate industry benchmarks
+ * Calculate industry benchmarks for brand scores
+ * 
+ * Returns relative benchmarks based on typical distribution:
+ * - Average: 65/100
+ * - Top 25%: 75/100
+ * - Top 10%: 85/100
+ * 
+ * Note: In production, these would ideally come from actual industry data analysis.
+ * 
+ * @param _overallScore - Overall brand score (currently unused but kept for future use)
+ * @returns IndustryBenchmark object with average, top25Percent, and top10Percent scores
  */
 export function calculateIndustryBenchmark(_overallScore: number): IndustryBenchmark {
   // These are relative benchmarks based on typical distribution
@@ -573,7 +657,21 @@ export function calculateIndustryBenchmark(_overallScore: number): IndustryBench
 }
 
 /**
- * Perform complete brand analysis
+ * Perform complete brand analysis across all platforms
+ * 
+ * Orchestrates the full brand analysis pipeline:
+ * 1. Analyzes each component (resume, LinkedIn, GitHub, portfolio)
+ * 2. Generates overall brand score from weighted component scores
+ * 3. Generates personalized recommendations using AI
+ * 4. Determines brand archetype
+ * 5. Calculates industry benchmarks
+ * 
+ * @param data - Object containing data for all platforms to analyze
+ * @param data.resumeData - Resume data or null
+ * @param data.linkedInData - LinkedIn profile data or null
+ * @param data.githubData - GitHub analysis data or null
+ * @param data.portfolioData - Portfolio analysis data or null
+ * @returns Promise resolving to complete BrandAnalysisResult with scores, recommendations, archetype, and benchmarks
  */
 export async function performBrandAnalysis(data: {
   resumeData: ResumeData | null;

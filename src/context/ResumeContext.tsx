@@ -467,7 +467,43 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
     latestStateRef.current = state;
   }, [state]);
 
-  // Save to Supabase whenever state changes (with debouncing)
+  /**
+   * Debounced save effect with queue system
+   * 
+   * This effect handles automatic saving of resume data with the following features:
+   * 
+   * 1. **Debouncing**: Waits 500ms after the last state change before saving to avoid
+   *    excessive API calls while the user is typing.
+   * 
+   * 2. **Refs for Latest State**: Uses `latestStateRef` to always access the most current
+   *    state value. This is critical because:
+   *    - React closures in useEffect can capture stale state values
+   *    - When the save timer fires, we need the absolute latest state, not the state
+   *      from when the effect was set up
+   *    - Without refs, rapid changes could cause us to save outdated data
+   * 
+   * 3. **Queue System**: Implements a save queue to prevent concurrent saves:
+   *    - `isSavingRef`: Acts as a lock to prevent multiple saves from running simultaneously
+   *    - `pendingSaveRef`: Flags that a save was requested while another save was in progress
+   *    - `saveTrigger`: State counter that forces the effect to re-run when a queued save
+   *      should be processed
+   * 
+   * 4. **Queue Flow**:
+   *    - If a save is already in progress (`isSavingRef.current === true`), the new save
+   *      request sets `pendingSaveRef.current = true` and exits
+   *    - When the current save completes, it checks `pendingSaveRef` and if true, increments
+   *      `saveTrigger` to re-run this effect, ensuring the latest state is saved
+   *    - This guarantees that even if changes occur during a save operation, they will
+   *      be captured in a subsequent save
+   * 
+   * 5. **Storage Strategy**: Cloud-First approach:
+   *    - Attempts to save to Supabase first (if user is logged in)
+   *    - Falls back to LocalStorage if Supabase save fails
+   *    - Updates LocalStorage cache even after successful Supabase save for offline access
+   * 
+   * @dependencies state, isLoading, saveTrigger
+   * @effect Triggers on state changes, but debounced by 500ms
+   */
   useEffect(() => {
     // Skip save on initial mount
     if (isInitialMount.current || isLoading) {
@@ -486,19 +522,31 @@ export function ResumeProvider({ children, initialData }: ResumeProviderProps) {
 
     // Set new timer to save after 500ms - debounced save (reduced from 1000ms for better responsiveness)
     saveTimeoutRef.current = setTimeout(async () => {
+      /**
+       * Debounced save function
+       * 
+       * This function is called after the debounce delay expires. It implements:
+       * - Concurrent save prevention via isSavingRef lock
+       * - Save queueing via pendingSaveRef flag
+       * - Always uses latestStateRef to avoid stale closure issues
+       */
+      
       // Check if save is already in progress
       if (isSavingRef.current) {
         // Queue this save for after current one completes
+        // The pendingSaveRef flag will trigger a new save cycle when current save finishes
         pendingSaveRef.current = true;
         setIsSaving(false);
         return;
       }
 
-      // Mark save as in progress
+      // Mark save as in progress - prevents concurrent saves
       isSavingRef.current = true;
 
       try {
         // Always use latest state from ref to avoid stale closures
+        // This ensures we save the most recent state, even if multiple changes
+        // occurred during the debounce period
         const currentState = latestStateRef.current;
         
         // Validate resume data before saving

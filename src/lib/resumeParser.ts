@@ -1,6 +1,16 @@
 /**
  * Resume Parser Utility
- * Extracts structured data from resume files using OpenAI
+ * 
+ * This module provides functionality to extract structured data from resume files (PDF, DOCX, TXT)
+ * and convert them into a standardized format using OpenAI's GPT models. It handles:
+ * 
+ * - Text extraction from various file formats (PDF, DOCX, DOC, TXT)
+ * - AI-powered parsing to extract structured resume data (personal info, experience, education, skills, etc.)
+ * - Conversion of parsed data into the application's ResumeData format
+ * - Caching of parsed resumes in localStorage
+ * 
+ * The parser uses OpenAI's GPT-4o-mini model to intelligently extract and structure resume information,
+ * handling variations in resume formats and layouts.
  */
 
 import { supabase } from './supabase';
@@ -53,6 +63,10 @@ export interface ParsedResumeData {
 
 /**
  * Extract text from a PDF file using pdf.js
+ * 
+ * @param file - The PDF file to extract text from
+ * @returns A promise that resolves to the extracted text content
+ * @throws Error if the PDF is password-protected, corrupted, or insufficient text can be extracted
  */
 async function extractTextFromPDF(file: File): Promise<string> {
   try {
@@ -133,6 +147,10 @@ async function extractTextFromPDF(file: File): Promise<string> {
 
 /**
  * Extract text from a DOCX file using mammoth
+ * 
+ * @param file - The DOCX file to extract text from
+ * @returns A promise that resolves to the extracted text content
+ * @throws Error if the DOCX is password-protected, corrupted, or insufficient text can be extracted
  */
 async function extractTextFromDOCX(file: File): Promise<string> {
   try {
@@ -171,7 +189,13 @@ async function extractTextFromDOCX(file: File): Promise<string> {
 }
 
 /**
- * Extract text from a file (supports PDF, DOCX, and TXT)
+ * Extract text from a file (supports PDF, DOCX, DOC, and TXT)
+ * 
+ * Automatically detects file type and uses the appropriate extraction method.
+ * 
+ * @param file - The file to extract text from (PDF, DOCX, DOC, or TXT)
+ * @returns A promise that resolves to the extracted text content
+ * @throws Error if the file type is unsupported, password-protected, corrupted, or extraction fails
  */
 export async function extractTextFromFile(file: File): Promise<string> {
   const fileName = file.name.toLowerCase();
@@ -248,7 +272,14 @@ export async function extractTextFromFile(file: File): Promise<string> {
 }
 
 /**
- * Parse resume using OpenAI
+ * Parse resume text using OpenAI GPT model
+ * 
+ * Sends the resume text to OpenAI's GPT-4o-mini model with a structured prompt
+ * to extract resume data in a standardized JSON format.
+ * 
+ * @param resumeText - The raw text content extracted from the resume file
+ * @returns A promise that resolves to ParsedResumeData containing structured resume information
+ * @throws Error if the API call fails, network error occurs, or response cannot be parsed
  */
 export async function parseResumeWithAI(resumeText: string): Promise<ParsedResumeData> {
   const prompt = `Extract structured data from this resume text and return valid JSON only. The JSON should include:
@@ -352,6 +383,12 @@ Return only valid JSON, no additional text:`;
 
 /**
  * Parse resume from uploaded file
+ * 
+ * Complete pipeline: extracts text from file, parses with AI, and caches the result.
+ * 
+ * @param file - The resume file to parse (PDF, DOCX, DOC, or TXT)
+ * @returns A promise that resolves to ParsedResumeData containing structured resume information
+ * @throws Error if file extraction fails, parsing fails, or file is invalid/corrupted
  */
 export async function parseResume(file: File): Promise<ParsedResumeData> {
   try {
@@ -445,7 +482,22 @@ export function clearAllResumes(): void {
 
 /**
  * Parse resume from text and convert to ResumeData format for the editor
- * This function takes raw resume text and returns data in the format expected by ResumeContext
+ * 
+ * This function takes raw resume text, parses it with AI, and converts the result
+ * into the application's ResumeData format that can be directly used by ResumeContext.
+ * 
+ * Handles conversion of:
+ * - Personal information (name, email, phone, location, LinkedIn, portfolio)
+ * - Experience entries (with date formatting)
+ * - Education entries (with standardized structure)
+ * - Skills (combines technical and soft skills)
+ * - Certifications
+ * - Projects
+ * - Languages
+ * 
+ * @param text - Raw resume text to parse
+ * @returns A promise that resolves to partial ResumeData object compatible with ResumeContext
+ * @throws Error if parsing fails or AI response is invalid
  */
 export async function parseResumeFromText(text: string): Promise<Partial<ContextResumeData>> {
   // Parse the resume text using AI
