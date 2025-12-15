@@ -1,10 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ResumeProvider, useResume } from '../context/ResumeContext';
 import { FeatureIntegration, type LinkedInProfileData, type JobDataForResume } from '../lib/featureIntegration';
-import type { SectionItem } from '../types/resume';
+import type { SectionItem, ResumeSection } from '../types/resume';
 import { createDateRangeString } from '../lib/dateFormatHelpers';
 import { useWorkflowContext } from '../hooks/useWorkflowContext';
+import { loadResume } from '../lib/resumeStorage';
+import { toast } from 'sonner';
+import { getSharedResume } from '../lib/resumeExport';
 
 // Workflow context types
 interface WorkflowCertification {
@@ -55,15 +58,23 @@ export default function ResumeStudio() {
 
 function ResumeStudioContent() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { state, dispatch } = useResume();
   
   // Workflow state - use custom hook for reactive context
   const { workflowContext, updateContext } = useWorkflowContext();
   const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const workflowProcessedRef = useRef<Set<string>>(new Set());
+  const hasProcessedPendingActionRef = useRef(false);
+  const hasLoadedSharedResumeRef = useRef(false);
 
   // Handle feature integration actions on mount
   useEffect(() => {
+    if (hasProcessedPendingActionRef.current) {
+      return;
+    }
+    hasProcessedPendingActionRef.current = true;
+
     const pendingAction = FeatureIntegration.getPendingAction();
     
     if (!pendingAction) {
@@ -371,7 +382,74 @@ function ResumeStudioContent() {
     } catch (error) {
       console.error('Error processing pending action:', error);
     }
-  }, []); // Only run on mount
+  }, [dispatch, navigate, state]);
+
+  // Load shared resume from share link
+  useEffect(() => {
+    const shareId = searchParams.get('share');
+    if (!shareId || hasLoadedSharedResumeRef.current) {
+      return;
+    }
+
+    const loadSharedResume = async () => {
+      try {
+        const resumeData = await loadResume(shareId);
+
+        if (resumeData) {
+          dispatch({
+            type: 'SET_RESUME',
+            payload: {
+              ...resumeData,
+              id: shareId,
+            },
+          });
+          hasLoadedSharedResumeRef.current = true;
+          toast.success('Shared resume loaded');
+          return;
+        }
+
+        // Fallback: try shared resume stored via share links
+        const shared = getSharedResume(shareId);
+        if (shared?.content) {
+          const sharedSection: ResumeSection = {
+            id: `shared-content-${shareId}`,
+            type: 'custom',
+            title: shared.title || 'Shared Resume',
+            isVisible: true,
+            items: [
+              {
+                id: `shared-item-${shareId}`,
+                title: shared.title || 'Shared Resume',
+                subtitle: '',
+                date: '',
+                description: shared.content,
+              },
+            ],
+          };
+
+          dispatch({
+            type: 'SET_RESUME',
+            payload: {
+              ...state,
+              id: shareId,
+              title: shared.title || state.title,
+              sections: [sharedSection, ...state.sections],
+            },
+          });
+          hasLoadedSharedResumeRef.current = true;
+          toast.success('Shared resume loaded');
+          return;
+        }
+
+        toast.error('Shared resume not found or expired');
+      } catch (error) {
+        console.error('Error loading shared resume:', error);
+        toast.error('Unable to load shared resume');
+      }
+    };
+
+    loadSharedResume();
+  }, [searchParams, dispatch, state]);
 
   // Check for workflow context changes
   useEffect(() => {
