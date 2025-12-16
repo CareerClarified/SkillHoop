@@ -182,17 +182,19 @@ export default function SkillsEditor() {
       {/* List View */}
       {!isFormVisible && items.length > 0 && (
         <div className="space-y-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="font-medium text-slate-900">{item.title || ''}</div>
-                {item.subtitle && (
-                  <div className="text-sm text-slate-600">{item.subtitle}</div>
-                )}
-              </div>
+          {items.map((item) => {
+            if (!item || !item.id) return null;
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+              >
+                <div className="flex-1">
+                  <div className="font-medium text-slate-900">{item.title || ''}</div>
+                  {item.subtitle && (
+                    <div className="text-sm text-slate-600">{item.subtitle || ''}</div>
+                  )}
+                </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleEditClick(item)}
@@ -228,7 +230,8 @@ export default function SkillsEditor() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

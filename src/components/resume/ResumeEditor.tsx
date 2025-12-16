@@ -148,7 +148,7 @@ function EditorSection({ id, children }: { id: string; title?: string; children:
 
 export default function ResumeEditor() {
   const { state, dispatch } = useResume();
-  const { personalInfo } = state;
+  const personalInfo = state.personalInfo || {};
   
   // Check if resume has content
   const hasContent = state.sections.some(section => 
@@ -161,39 +161,39 @@ export default function ResumeEditor() {
   const [dropPosition, setDropPosition] = React.useState<'above' | 'below' | null>(null);
 
   // Validation hooks for each field
-  const emailValidation = useEmailValidation(personalInfo.email || '');
-  const phoneValidation = usePhoneValidation(personalInfo.phone || '');
-  const linkedInValidation = useLinkedInValidation(personalInfo.linkedin || '');
-  const websiteValidation = useWebsiteValidation(personalInfo.website || '');
+  const emailValidation = useEmailValidation(personalInfo?.email || '');
+  const phoneValidation = usePhoneValidation(personalInfo?.phone || '');
+  const linkedInValidation = useLinkedInValidation(personalInfo?.linkedin || '');
+  const websiteValidation = useWebsiteValidation(personalInfo?.website || '');
 
   // Sync validation hooks with state changes
   useEffect(() => {
-    if (personalInfo.email !== emailValidation.value) {
-      emailValidation.setValue(personalInfo.email || '');
+    if (personalInfo?.email !== emailValidation.value) {
+      emailValidation.setValue(personalInfo?.email || '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personalInfo.email]);
+  }, [personalInfo?.email]);
 
   useEffect(() => {
-    if (personalInfo.phone !== phoneValidation.value) {
-      phoneValidation.setValue(personalInfo.phone || '');
+    if (personalInfo?.phone !== phoneValidation.value) {
+      phoneValidation.setValue(personalInfo?.phone || '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personalInfo.phone]);
+  }, [personalInfo?.phone]);
 
   useEffect(() => {
-    if (personalInfo.linkedin !== linkedInValidation.value) {
-      linkedInValidation.setValue(personalInfo.linkedin || '');
+    if (personalInfo?.linkedin !== linkedInValidation.value) {
+      linkedInValidation.setValue(personalInfo?.linkedin || '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personalInfo.linkedin]);
+  }, [personalInfo?.linkedin]);
 
   useEffect(() => {
-    if (personalInfo.website !== websiteValidation.value) {
-      websiteValidation.setValue(personalInfo.website || '');
+    if (personalInfo?.website !== websiteValidation.value) {
+      websiteValidation.setValue(personalInfo?.website || '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personalInfo.website]);
+  }, [personalInfo?.website]);
 
   const handleInputChange = (field: keyof typeof personalInfo, value: string) => {
     dispatch({
@@ -239,7 +239,7 @@ export default function ResumeEditor() {
             <input
               type="text"
               id="fullName"
-              value={personalInfo.fullName || ''}
+              value={personalInfo?.fullName || ''}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
               className={`w-full bg-transparent rounded-md focus:outline-none focus:ring-2 px-2 py-1.5 ${
                 isFieldRequiredAndMissing(state, 'fullName')
@@ -264,7 +264,7 @@ export default function ResumeEditor() {
             <input
               type="text"
               id="jobTitle"
-              value={personalInfo.jobTitle || ''}
+              value={personalInfo?.jobTitle || ''}
               onChange={(e) => handleInputChange('jobTitle', e.target.value)}
               className="w-full bg-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/50 px-2 py-1.5"
               placeholder="Software Engineer"
@@ -389,13 +389,13 @@ export default function ResumeEditor() {
                   Professional Summary
                 </label>
                 <AIAssistantButton
-                  currentText={personalInfo.summary || ''}
+                  currentText={personalInfo?.summary || ''}
                   onAccept={(newText) => handleInputChange('summary', newText)}
                 />
               </div>
               <textarea
                 id="summary"
-                value={personalInfo.summary || ''}
+                value={personalInfo?.summary || ''}
                 onChange={(e) => handleInputChange('summary', e.target.value)}
                 rows={6}
                 className="w-full bg-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/50 px-2 py-1.5 resize-none"
