@@ -262,11 +262,11 @@ return (
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <button 
+                <button
                     onClick={() => onSelect(flow)}
                     className={`bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl px-5 py-2.5 text-sm font-bold transition-all shadow-sm active:scale-[0.98] flex items-center gap-1.5 ${darkMode ? 'bg-white text-neutral-900 hover:bg-slate-200' : ''}`}
                 >
-                    {flow.progress > 0 ? 'Continue' : 'View'} 
+                    {flow.progress > 0 ? 'Continue' : 'View'}
                 </button>
             </div>
         </footer>
@@ -390,7 +390,7 @@ return (
 
 // --- 4. Main Dashboard Component ---
 
-const MI = () => {
+const DashboardShell = () => {
 const [activeView, setActiveView] = useState('overview');
 const [dashboardMode, setDashboardMode] = useState('overview'); // 'overview' | 'workflow'
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -550,5 +550,4 @@ return (
 );
 };
 
-export default MI;
-
+export default DashboardShell;

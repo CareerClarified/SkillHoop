@@ -22,7 +22,7 @@ const BlogIndex = lazy(() => import('./pages/BlogIndex'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const AdminBlog = lazy(() => import('./pages/AdminBlog'));
 const Test = lazy(() => import('./pages/Test'));
-const MI = lazy(() => import('./pages/MI'));
+const DashboardShell = lazy(() => import('./pages/DashboardShell'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -87,9 +87,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/email-sent" element={<EmailSentPage />} />
           
-          {/* Main app (auth) - MI with SkillHoopSidebar */}
+          {/* Main app (auth) - Dashboard shell with SkillHoopSidebar */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/mi" element={<MI />} />
+            <Route path="/mi" element={<DashboardShell />} />
           </Route>
           
           {/* Redirect old dashboard URLs to main app */}
