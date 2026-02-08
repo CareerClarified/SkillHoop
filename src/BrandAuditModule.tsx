@@ -212,48 +212,6 @@ const RechartsMock = {
 
 const { RadarChart, ResponsiveContainer, AreaChart, BarChart } = RechartsMock as any;
 
-// --- Workflow UI (self-contained) ---
-const WorkflowBreadcrumb = ({ workflowId }: { workflowId: string }) => (
-  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2">
-    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-    <span>Personal Brand Discovery</span>
-    <ChevronRight size={12} />
-    <span className="text-neutral-900 font-bold">Brand Audit</span>
-  </div>
-);
-
-const WorkflowPrompt = ({
-  message,
-  actionText,
-  onDismiss,
-  onAction,
-}: {
-  message: string;
-  actionText: string;
-  onDismiss: () => void;
-  onAction: (action: 'continue') => void;
-}) => (
-  <div className="bg-indigo-600 text-white p-4 rounded-xl flex items-center justify-between shadow-lg shadow-indigo-600/20 mb-6 animate-fade-in-up">
-    <div className="flex items-center gap-3">
-      <div className="bg-white/20 p-2 rounded-full">
-        <Sparkles size={20} />
-      </div>
-      <span className="font-bold text-sm">{message}</span>
-    </div>
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => onAction('continue')}
-        className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-50 transition-colors"
-      >
-        {actionText}
-      </button>
-      <button onClick={onDismiss} className="text-white/60 hover:text-white p-1">
-        <X size={18} />
-      </button>
-    </div>
-  </div>
-);
-
 // --- Helper Components ---
 const ScanningOverlay = ({
   isScanning,
@@ -527,7 +485,6 @@ const generateScoreHistory = () => {
 // --- BrandAudit Component ---
 const BrandAudit = () => {
   const [workflowContext, setWorkflowContext] = useState<{ workflowId?: string } | null>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'complete'>('idle');
@@ -622,7 +579,6 @@ const BrandAudit = () => {
           brandScore: brandScore.overall,
           recommendations: recommendations.length,
         });
-        setShowWorkflowPrompt(true);
       }
     }
   }, [analysisStatus, brandScore, recommendations.length]);
@@ -705,7 +661,6 @@ const BrandAudit = () => {
         recommendations,
         action: 'optimize-linkedin',
       });
-      setShowWorkflowPrompt(true);
     }
 
     const newInsight: Insight = {
@@ -2031,24 +1986,6 @@ const BrandAudit = () => {
       <AIOptimizerModal isOpen={optimizerOpen} onClose={() => setOptimizerOpen(false)} recommendation={selectedFixRecommendation} onApply={handleApplyFix} />
 
       <div className="pt-6 w-full flex-1">
-        {showWorkflowPrompt && workflowContext?.workflowId === 'personal-brand-job-discovery' && analysisStatus === 'complete' ? (
-          <div className="mb-6">
-            <WorkflowPrompt
-              message={`✅ Brand Audit Complete! Your brand score is ${brandScore.overall}/100.`}
-              actionText="Optimize LinkedIn"
-              onDismiss={() => setShowWorkflowPrompt(false)}
-              onAction={() => {
-                WorkflowTracking.setWorkflowContext({
-                  workflowId: 'personal-brand-job-discovery',
-                  brandScore,
-                  recommendations,
-                  action: 'optimize-linkedin',
-                });
-              }}
-            />
-          </div>
-        ) : null}
-
         <div className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-1 grid grid-cols-3 md:grid-cols-6 gap-1 mb-8">
           {tabs.map((tab) => (
             <button

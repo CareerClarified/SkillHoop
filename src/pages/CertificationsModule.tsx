@@ -60,20 +60,6 @@ const WorkflowTracking = {
     }
 };
 
-// --- Helper Components ---
-
-const WorkflowBreadcrumb = ({ workflowId, currentFeaturePath }: any) => (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2 w-fit animate-fade-in">
-        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-        <span>{workflowId === 'job-application-pipeline' ? 'Job Application Pipeline' : workflowId === 'skill-development-advancement' ? 'Skill Development' : 'Career Growth'}</span>
-        <ChevronRight size={12}/>
-        <span className="text-neutral-900 font-bold">Earn Certifications</span>
-    </div>
-);
-
-const WorkflowQuickActions = ({ workflowId, currentFeaturePath }: any) => null;
-const WorkflowTransition = ({ workflowId, currentFeaturePath }: any) => null;
-
 // --- Certifications Component Data & Logic ---
 
 // Sample certifications data
@@ -222,10 +208,9 @@ const getDaysUntilExpiration = (expirationDate?: string) => {
 const Certifications = () => {
   const navigate = useNavigate();
    
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
-   
+
   const [certifications, setCertifications] = useState(sampleCertifications);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -300,7 +285,6 @@ const Certifications = () => {
         WorkflowTracking.updateStepStatus('skill-development-advancement', 'earn-certifications', 'completed', {
           certificationsEarned: certifications.length
         });
-        setShowWorkflowPrompt(true);
       }
     }
   }, [certifications.length]);
@@ -415,7 +399,6 @@ const Certifications = () => {
                 certificationsEarned: updated.length,
                 latestCertification: newCert.name
             });
-            setShowWorkflowPrompt(true);
         }
     }
     setShowAddModal(false);
@@ -437,54 +420,6 @@ const Certifications = () => {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-12">
-      {/* Workflow Breadcrumb */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <WorkflowBreadcrumb
-          workflowId="skill-development-advancement"
-          currentFeaturePath="/dashboard/certifications"
-        />
-      )}
-
-      {/* Workflow Prompt */}
-      {showWorkflowPrompt && workflowContext && certifications.length > 0 && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl mb-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-32 bg-white opacity-5 rounded-full transform translate-x-12 -translate-y-12 blur-3xl"></div>
-          <div className="flex items-start justify-between mb-4 relative z-10">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                <BadgeCheck className="w-6 h-6 text-emerald-300" />
-                Certifications Milestone Reached!
-              </h3>
-              <p className="text-white/90 mb-4 max-w-2xl">You've successfully logged {certifications.length} certification{certifications.length !== 1 ? 's' : ''}. This significantly boosts your profile strength for potential roles.</p>
-              
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => {
-                    navigate('/dashboard/resume-studio');
-                  }}
-                  className="px-5 py-2.5 bg-white text-indigo-600 rounded-xl font-bold hover:bg-white/90 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  Update Resume
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setShowWorkflowPrompt(false)}
-                  className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all backdrop-blur-sm"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowWorkflowPrompt(false)}
-              className="text-white/70 hover:text-white transition-colors p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Stats Board */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">

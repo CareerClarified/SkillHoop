@@ -40,13 +40,6 @@ import ErrorBoundary from '../components/ui/ErrorBoundary';
 import { WorkflowTracking } from '../lib/workflowTracking';
 // Icons removed - not used
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
-import WorkflowBreadcrumb from '../components/workflows/WorkflowBreadcrumb';
-import WorkflowPrompt from '../components/workflows/WorkflowPrompt';
-import WorkflowToast from '../components/workflows/WorkflowToast';
-import { areWorkflowPromptsEnabled, areWorkflowToastsEnabled, getToastDuration, isWorkflowDismissed } from '../lib/workflowPreferences';
-import WorkflowTransition from '../components/workflows/WorkflowTransition';
-import WorkflowQuickActions from '../components/workflows/WorkflowQuickActions';
-import WorkflowStatusIndicator from '../components/workflows/WorkflowStatusIndicator';
 
 export default function ResumeStudio() {
         return (
@@ -65,9 +58,8 @@ function ResumeStudioContent() {
     return /^\d{4}$/.test(value) ? `${value}-01` : value;
   };
   
-  // Workflow state - use custom hook for reactive context
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const { workflowContext, updateContext } = useWorkflowContext();
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const workflowProcessedRef = useRef<Set<string>>(new Set());
   const hasProcessedPendingActionRef = useRef(false);
   const hasLoadedSharedResumeRef = useRef(false);
@@ -591,10 +583,6 @@ function ResumeStudioContent() {
         skillsAdded: workflowContext.identifiedSkills?.length || 0
       });
       
-      // Only show prompt if enabled and not dismissed
-      if (areWorkflowPromptsEnabled() && !isWorkflowDismissed('skill-development-advancement')) {
-        setShowWorkflowPrompt(true);
-      }
     }
     
     // Workflow 6: Document Consistency & Version Control
@@ -628,10 +616,6 @@ function ResumeStudioContent() {
           action: 'sync-cover-letters'
         });
         
-        // Only show prompt if enabled and not dismissed
-        if (areWorkflowPromptsEnabled() && !isWorkflowDismissed('document-consistency-version-control')) {
-          setShowWorkflowPrompt(true);
-        }
       }
     }
   }, [workflowContext, state.sections, state.personalInfo, dispatch, updateContext]);
@@ -645,173 +629,6 @@ function ResumeStudioContent() {
           featureName="Resume Studio"
         />
       </div>
-
-      {/* Workflow Status Indicator - Shows which workflow this resume is part of */}
-      <div className="px-6 pt-3 shrink-0 no-print">
-        <WorkflowStatusIndicator
-          featurePath="/dashboard/resume-studio"
-          featureName="Resume"
-          compact={true}
-        />
-      </div>
-
-      {/* Workflow Breadcrumb - Workflow 2 */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowBreadcrumb
-            workflowId="skill-development-advancement"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Breadcrumb - Workflow 6 */}
-      {workflowContext?.workflowId === 'document-consistency-version-control' && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowBreadcrumb
-            workflowId="document-consistency-version-control"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Quick Actions - Workflow 2 */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowQuickActions
-            workflowId="skill-development-advancement"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Quick Actions - Workflow 6 */}
-      {workflowContext?.workflowId === 'document-consistency-version-control' && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowQuickActions
-            workflowId="document-consistency-version-control"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Transition - Workflow 2 (after resume updated) */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && state.sections.length > 0 && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowTransition
-            workflowId="skill-development-advancement"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Transition - Workflow 6 (after resume updated) */}
-      {workflowContext?.workflowId === 'document-consistency-version-control' && state.sections.length > 0 && (
-        <div className="px-6 pt-3 shrink-0 no-print">
-          <WorkflowTransition
-            workflowId="document-consistency-version-control"
-            currentFeaturePath="/dashboard/resume-studio"
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Workflow Toast/Prompt - Workflow 2 */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'skill-development-advancement' && (
-        <>
-          {areWorkflowToastsEnabled() ? (
-            <WorkflowToast
-              isOpen={showWorkflowPrompt}
-              onDismiss={() => setShowWorkflowPrompt(false)}
-              onContinue={() => {
-                updateContext({
-                  workflowId: 'skill-development-advancement',
-                  resumeUpdated: true,
-                  action: 'showcase-portfolio'
-                });
-                navigate('/dashboard/portfolio');
-                setShowWorkflowPrompt(false);
-              }}
-              title="Resume Updated!"
-              message="Your resume has been updated with new skills and certifications. Showcase them in your portfolio!"
-              actionText="Showcase Portfolio"
-              variant="success"
-              autoDismiss={getToastDuration()}
-            />
-          ) : (
-            <div className="px-6 pt-3 shrink-0 no-print">
-              <WorkflowPrompt
-                workflowId="skill-development-advancement"
-                currentFeaturePath="/dashboard/resume-studio"
-                message="✅ Resume Updated! Your resume has been updated with new skills and certifications. Showcase them in your portfolio!"
-                actionText="Showcase Portfolio"
-                actionUrl="/dashboard/portfolio"
-                onDismiss={() => setShowWorkflowPrompt(false)}
-                onAction={(action) => {
-                  if (action === 'continue') {
-                    updateContext({
-                      workflowId: 'skill-development-advancement',
-                      resumeUpdated: true,
-                      action: 'showcase-portfolio'
-                    });
-                  }
-                }}
-              />
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Workflow Toast/Prompt - Workflow 6 */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'document-consistency-version-control' && (
-        <>
-          {areWorkflowToastsEnabled() ? (
-            <WorkflowToast
-              isOpen={showWorkflowPrompt}
-              onDismiss={() => setShowWorkflowPrompt(false)}
-              onContinue={() => {
-                updateContext({
-                  workflowId: 'document-consistency-version-control',
-                  resumeUpdated: true,
-                  action: 'sync-cover-letters'
-                });
-                navigate('/dashboard/smart-cover-letter');
-                setShowWorkflowPrompt(false);
-              }}
-              title="Resume Updated!"
-              message="Your resume is now consistent. Ready to sync your cover letters?"
-              actionText="Sync Cover Letters"
-              variant="success"
-              autoDismiss={getToastDuration()}
-            />
-          ) : (
-            <div className="px-6 pt-3 shrink-0 no-print">
-              <WorkflowPrompt
-                workflowId="document-consistency-version-control"
-                currentFeaturePath="/dashboard/resume-studio"
-                message="✅ Resume Updated for Consistency! Your resume is now consistent. Ready to sync your cover letters?"
-                actionText="Sync Cover Letters"
-                actionUrl="/dashboard/smart-cover-letter"
-                onDismiss={() => setShowWorkflowPrompt(false)}
-                onAction={(action) => {
-                  if (action === 'continue') {
-                    updateContext({
-                      workflowId: 'document-consistency-version-control',
-                      resumeUpdated: true,
-                      action: 'sync-cover-letters'
-                    });
-                  }
-                }}
-              />
-            </div>
-          )}
-        </>
-      )}
 
       {/* Header */}
       <header className="h-auto sm:h-16 bg-white border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-0 shrink-0 no-print">

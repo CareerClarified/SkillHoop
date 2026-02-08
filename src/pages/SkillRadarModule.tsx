@@ -141,36 +141,6 @@ const UpgradeModal = ({ isOpen, onClose }: any) => {
   );
 };
 
-const WorkflowBreadcrumb = ({ workflowId }: any) => (
-  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2">
-    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-    <span>{workflowId === 'job-application-pipeline' ? 'Job Application Pipeline' : workflowId === 'skill-development-advancement' ? 'Skill Development' : 'Career Growth'}</span>
-    <div className="w-3 h-3 text-slate-400">
-      <ChevronDown size={12} className="-rotate-90" />
-    </div>
-    <span className="text-neutral-900 font-bold">Current Step</span>
-  </div>
-);
-
-const WorkflowPrompt = ({ message, actionText, onDismiss, onAction }: any) => (
-  <div className="bg-indigo-600 text-white p-4 rounded-xl flex items-center justify-between shadow-lg shadow-indigo-600/20 mb-6 animate-fade-in-up">
-    <div className="flex items-center gap-3">
-      <div className="bg-white/20 p-2 rounded-full">
-        <Sparkles size={20} />
-      </div>
-      <span className="font-bold text-sm">{message}</span>
-    </div>
-    <div className="flex items-center gap-2">
-      <button onClick={() => onAction('continue')} className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-50 transition-colors">
-        {actionText}
-      </button>
-      <button onClick={onDismiss} className="text-white/60 hover:text-white p-1">
-        <X size={18} />
-      </button>
-    </div>
-  </div>
-);
-
 // --- Data Constants ---
 
 const radarSkillsData = [
@@ -455,8 +425,6 @@ function SkillRadar({ onNavigate }: any) {
     if (onNavigate) onNavigate(path);
   };
 
-  const { workflowContext } = useWorkflowContext();
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [activeView, setActiveView] = useState('radar');
   const [selectedRole, setSelectedRole] = useState(targetRoles[0]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -552,8 +520,6 @@ function SkillRadar({ onNavigate }: any) {
   const toggleWatchlist = (skillId: number) => {
     const updatedSkills = skills.map((skill: any) => (skill.id === skillId ? { ...skill, isWatched: !skill.isWatched } : skill));
     setSkills(updatedSkills);
-    const watchedCount = updatedSkills.filter((s: any) => s.isWatched).length;
-    if (watchedCount > 0) setShowWorkflowPrompt(true);
   };
 
   const filteredSkills = skills.filter((skill: any) => {
@@ -605,8 +571,6 @@ function SkillRadar({ onNavigate }: any) {
   return (
     <FeatureGate requiredTier="ultimate">
       <div className="space-y-8 animate-fade-in-up bg-slate-50 min-h-screen">
-        {workflowContext?.workflowId === 'skill-development-advancement' && <WorkflowBreadcrumb workflowId={workflowContext.workflowId} />}
-
         {notification && (
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-neutral-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-fade-in-up border border-white/10 w-[90%] max-w-md">
             <div className="bg-emerald-500 rounded-full p-2 shrink-0">
@@ -620,17 +584,6 @@ function SkillRadar({ onNavigate }: any) {
               <X size={18} />
             </button>
           </div>
-        )}
-
-        {showWorkflowPrompt && (
-          <WorkflowPrompt
-            message={`✅ Skills Identified! You've identified ${watchlistSkills.length} skill${watchlistSkills.length !== 1 ? 's' : ''} to develop. Ready to benchmark them?`}
-            actionText="Benchmark Skills"
-            onDismiss={() => setShowWorkflowPrompt(false)}
-            onAction={(action: string) => {
-              if (action === 'continue') navigate('/dashboard/benchmarking');
-            }}
-          />
         )}
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-start gap-4">

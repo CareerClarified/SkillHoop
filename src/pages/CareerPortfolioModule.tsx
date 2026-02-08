@@ -62,32 +62,6 @@ const WorkflowTracking = {
   completeWorkflow: (id: string) => console.log(`Workflow ${id} completed`),
 };
 
-const WorkflowBreadcrumb = ({ workflowId }: { workflowId: string }) => (
-  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2 w-fit">
-    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-    <span>{workflowId === 'skill-development-advancement' ? 'Skill Development' : 'Personal Brand Building'}</span>
-    <ChevronRight size={12} />
-    <span className="text-neutral-900 font-bold">Career Portfolio</span>
-  </div>
-);
-
-const WorkflowCompletion = ({ onDismiss }: any) => (
-  <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6 flex items-center justify-between">
-    <div className="flex items-center gap-4">
-      <div className="bg-green-100 p-2 rounded-full text-green-600">
-        <CheckCircle2 size={24} />
-      </div>
-      <div>
-        <h4 className="font-bold text-green-900">Workflow Step Completed!</h4>
-        <p className="text-sm text-green-700">You've successfully built your portfolio.</p>
-      </div>
-    </div>
-    <button onClick={onDismiss} className="text-green-600 hover:text-green-800">
-      <X size={20} />
-    </button>
-  </div>
-);
-
 const UpgradeModal = ({ isOpen, onClose }: any) => {
   if (!isOpen) return null;
   return (
@@ -116,10 +90,8 @@ const FeatureGate = ({ children }: any) => <>{children}</>;
 const AICareerPortfolio = () => {
   const navigate = useNavigate();
 
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
-  const [workflowComplete, setWorkflowComplete] = useState(false);
 
   const [step, setStep] = useState<'onboarding' | 'import' | 'template' | 'editor' | 'preview' | 'publish'>('onboarding');
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
@@ -160,7 +132,6 @@ const AICareerPortfolio = () => {
         WorkflowTracking.updateStepStatus(workflowContext.workflowId, 'showcase-portfolio', 'completed', {
           portfolioUrl: portfolioUrl,
         });
-        setShowWorkflowPrompt(true);
       }
     }
   }, [portfolioUrl, workflowContext]);
@@ -267,37 +238,6 @@ const AICareerPortfolio = () => {
   return (
     <FeatureGate requiredTier="ultimate">
       <div className="space-y-8 animate-fade-in-up">
-        {workflowComplete && <WorkflowCompletion workflowId={workflowContext?.workflowId} onDismiss={() => setWorkflowComplete(false)} />}
-
-        {showWorkflowPrompt && portfolioUrl && (
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2">🎉 Portfolio Published!</h3>
-                <p className="text-white/90 mb-4">Your portfolio is live at {portfolioUrl}. You've completed the workflow step!</p>
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => {
-                      setWorkflowComplete(true);
-                      setShowWorkflowPrompt(false);
-                      WorkflowTracking.completeWorkflow(workflowContext.workflowId);
-                    }}
-                    className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-white/90 transition-all flex items-center gap-2"
-                  >
-                    Mark Workflow Complete <ArrowRight className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setShowWorkflowPrompt(false)} className="px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
-                    Continue Editing
-                  </button>
-                </div>
-              </div>
-              <button onClick={() => setShowWorkflowPrompt(false)} className="text-white/70 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Progress Indicator */}
         <div className="bg-white/50 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">

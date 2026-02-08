@@ -38,11 +38,7 @@ import { supabase } from '../lib/supabase';
 import UpgradeModal from '../components/ui/UpgradeModal';
 import FeatureGate from '../components/auth/FeatureGate';
 import { WorkflowTracking } from '../lib/workflowTracking';
-import WorkflowCompletion from '../components/workflows/WorkflowCompletion';
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
-import WorkflowBreadcrumb from '../components/workflows/WorkflowBreadcrumb';
-import WorkflowTransition from '../components/workflows/WorkflowTransition';
-import WorkflowQuickActions from '../components/workflows/WorkflowQuickActions';
 import FeatureQuickStartWizard from '../components/workflows/FeatureQuickStartWizard';
 
 const InterviewPrep = () => {
@@ -52,10 +48,8 @@ const InterviewPrep = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showQuickStartWizard, setShowQuickStartWizard] = useState(false);
   
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
-  const [workflowComplete, setWorkflowComplete] = useState(false);
 
   // Job & Questions state
   const [currentJob, setCurrentJob] = useState<JobData | null>(null);
@@ -462,7 +456,6 @@ Return only valid JSON, no additional text:`,
             
             // Check if workflow is complete
             if (workflow.progress === 100) {
-              setWorkflowComplete(true);
               WorkflowTracking.completeWorkflow('job-application-pipeline');
             }
           }
@@ -482,10 +475,7 @@ Return only valid JSON, no additional text:`,
             
             // Complete the workflow
             if (workflow.progress === 100) {
-              setWorkflowComplete(true);
               WorkflowTracking.completeWorkflow('interview-preparation-ecosystem');
-            } else {
-              setShowWorkflowPrompt(true);
             }
           }
         }
@@ -1069,80 +1059,6 @@ Return ONLY valid JSON, no additional text.`,
         storageKey="interview_prep_quick_start_dismissed"
       />
       
-      {/* Workflow Breadcrumb - Workflow 1 */}
-      {workflowContext?.workflowId === 'job-application-pipeline' && (
-        <WorkflowBreadcrumb
-          workflowId="job-application-pipeline"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Breadcrumb - Workflow 4 */}
-      {workflowContext?.workflowId === 'interview-preparation-ecosystem' && (
-        <WorkflowBreadcrumb
-          workflowId="interview-preparation-ecosystem"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Quick Actions - Workflow 1 */}
-      {workflowContext?.workflowId === 'job-application-pipeline' && (
-        <WorkflowQuickActions
-          workflowId="job-application-pipeline"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Quick Actions - Workflow 4 */}
-      {workflowContext?.workflowId === 'interview-preparation-ecosystem' && (
-        <WorkflowQuickActions
-          workflowId="interview-preparation-ecosystem"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Transition - Workflow 1 */}
-      {workflowContext?.workflowId === 'job-application-pipeline' && (
-        <WorkflowTransition
-          workflowId="job-application-pipeline"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Transition - Workflow 4 */}
-      {workflowContext?.workflowId === 'interview-preparation-ecosystem' && (
-        <WorkflowTransition
-          workflowId="interview-preparation-ecosystem"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Breadcrumb - Workflow 4 */}
-      {workflowContext?.workflowId === 'interview-preparation-ecosystem' && (
-        <WorkflowBreadcrumb
-          workflowId="interview-preparation-ecosystem"
-          currentFeaturePath="/dashboard/interview-prep"
-        />
-      )}
-
-      {/* Workflow Completion Celebration - Workflow 1 */}
-      {workflowComplete && workflowContext?.workflowId === 'job-application-pipeline' && (
-        <WorkflowCompletion
-          workflowId="job-application-pipeline"
-          onDismiss={() => setWorkflowComplete(false)}
-          onContinue={() => setWorkflowComplete(false)}
-        />
-      )}
-      
-      {/* Workflow Completion Celebration - Workflow 4 */}
-      {workflowComplete && workflowContext?.workflowId === 'interview-preparation-ecosystem' && (
-        <WorkflowCompletion
-          workflowId="interview-preparation-ecosystem"
-          onDismiss={() => setWorkflowComplete(false)}
-          onContinue={() => setWorkflowComplete(false)}
-        />
-      )}
-
       {/* Top Controls Area */}
       <div className="flex flex-col gap-4 mb-6">
         {/* Source Resume Selector - Moved above tabs */}

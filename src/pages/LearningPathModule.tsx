@@ -77,15 +77,6 @@ const PinIcon = ({ size, className }: { size: number; className?: string }) => (
   </svg>
 );
 
-const WorkflowBreadcrumb = ({ workflowId }: { workflowId: string; currentFeaturePath?: string }) => (
-  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2">
-    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-    <span>{workflowId === 'skill-development-advancement' ? 'Skill Development' : 'Career Growth'}</span>
-    <ChevronRight size={12} />
-    <span className="text-neutral-900 font-bold">Current Step</span>
-  </div>
-);
-
 // --- RECHARTS MOCKS (Lightweight) ---
 const RechartsMock = {
   ResponsiveContainer: ({ children, height }: any) => (
@@ -262,7 +253,6 @@ const LearningPath = ({ onNavigate }: { onNavigate?: (path: string) => void }) =
   const navigate = onNavigate || ((p: string) => console.log('Navigating to', p));
 
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [expandedWeek, setExpandedWeek] = useState<number | null>(2);
 
@@ -282,66 +272,12 @@ const LearningPath = ({ onNavigate }: { onNavigate?: (path: string) => void }) =
           learningPathTitle: currentPath.title,
           progress: currentPath.progress,
         });
-        setShowWorkflowPrompt(true);
       }
     }
   }, [currentPath]);
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <WorkflowBreadcrumb workflowId="skill-development-advancement" currentFeaturePath="/dashboard/learning-path" />
-      )}
-
-      {showWorkflowPrompt && workflowContext?.workflowId === 'skill-development-advancement' && currentPath && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl animate-fade-in-up mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2">✅ Learning Path Created!</h3>
-              <p className="text-white/90 mb-4">You're making progress on "{currentPath.title}". Ready to start a sprint?</p>
-              <div className="bg-white/20 rounded-xl p-4 mb-4">
-                <p className="text-sm font-semibold mb-2">Next steps in your workflow:</p>
-                <div className="space-y-2 text-sm">
-                  {['Identified Skills', 'Benchmarked Skills', 'Created Learning Path'].map((t) => (
-                    <div key={t} className="flex items-center gap-2">
-                      <Check className="w-4 h-4" />
-                      <span>✓ {t}</span>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2 text-white/80">
-                    <ArrowRight className="w-4 h-4" />
-                    <span>→ Complete Sprints (Recommended next)</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    WorkflowTracking.setWorkflowContext({
-                      workflowId: 'skill-development-advancement',
-                      identifiedSkills: workflowContext?.identifiedSkills,
-                      learningPath: currentPath.title,
-                      action: 'complete-sprints',
-                    });
-                    navigate('/dashboard/sprints');
-                  }}
-                  className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-white/90 transition-all flex items-center gap-2"
-                >
-                  Start Sprint
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button onClick={() => setShowWorkflowPrompt(false)} className="px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
-                  Continue Later
-                </button>
-              </div>
-            </div>
-            <button onClick={() => setShowWorkflowPrompt(false)} className="text-white/70 hover:text-white transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Tabs + CTA */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">

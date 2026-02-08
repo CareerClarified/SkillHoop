@@ -489,32 +489,7 @@ const getDaysAway = (dateStr: string) => {
     return `In ${days} days`;
 };
 
-// --- Mock UI Components ---
-
-const WorkflowBreadcrumb = ({ workflowId }: any) => (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2">
-        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-        <span>Market Strategy</span>
-        <ChevronRight size={12} className="text-slate-400"/>
-        <span className="text-neutral-900 font-bold">Market Analysis</span>
-    </div>
-);
-const WorkflowQuickActions = (_props: any) => null;
-const WorkflowTransition = (_props: any) => null;
-const WorkflowPrompt = ({ message, actionText, onDismiss, onAction }: any) => (
-    <div className="bg-indigo-600 text-white p-4 rounded-xl flex items-center justify-between shadow-lg shadow-indigo-600/20 mb-6 animate-fade-in-up">
-        <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-full"><Sparkles size={20}/></div>
-            <span className="font-bold text-sm">{message}</span>
-        </div>
-        <div className="flex items-center gap-2">
-            <button onClick={() => onAction('continue')} className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-50 transition-colors">{actionText}</button>
-            <button onClick={onDismiss} className="text-white/60 hover:text-white p-1"><X size={18}/></button>
-        </div>
-    </div>
-);
 const ChevronRight = ({ size, className }: any) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"></polyline></svg>;
-
 
 // --- Main Components ---
 
@@ -540,10 +515,9 @@ const CareerEventScout = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('events');
    
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
-   
+
   // Events state
   const [events, setEvents] = useState(careerEventsData);
   const [searchQuery, setSearchQuery] = useState('');
@@ -615,8 +589,6 @@ const CareerEventScout = () => {
           },
           action: 'benchmark-skills-market'
         });
-        
-        setShowWorkflowPrompt(true);
       }
     }
   }, [events, following, workflowContext]);
@@ -799,58 +771,6 @@ const CareerEventScout = () => {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-       
-      {/* Workflow Breadcrumb - Workflow 7 */}
-      {workflowContext?.workflowId === 'market-intelligence-career-strategy' && (
-        <WorkflowBreadcrumb
-          workflowId="market-intelligence-career-strategy"
-          currentFeaturePath="/dashboard/career-event-scout"
-        />
-      )}
-
-      {/* Workflow Quick Actions - Workflow 7 */}
-      {workflowContext?.workflowId === 'market-intelligence-career-strategy' && (
-        <WorkflowQuickActions
-          workflowId="market-intelligence-career-strategy"
-          currentFeaturePath="/dashboard/career-event-scout"
-        />
-      )}
-
-      {/* Workflow Transition - Workflow 7 (after market analysis) */}
-      {workflowContext?.workflowId === 'market-intelligence-career-strategy' && (events.some(e => e.isBookmarked) || following.length > 0) && (
-        <WorkflowTransition
-          workflowId="market-intelligence-career-strategy"
-          currentFeaturePath="/dashboard/career-event-scout"
-          compact={true}
-        />
-      )}
-
-      {/* Workflow Prompt - Workflow 7 */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'market-intelligence-career-strategy' && (events.some(e => e.isBookmarked) || following.length > 0) && (
-        <WorkflowPrompt
-          workflowId="market-intelligence-career-strategy"
-          currentFeaturePath="/dashboard/career-event-scout"
-          message="✅ Market Trends Analyzed! You've bookmarked events and followed role models. Ready to benchmark your skills against the market?"
-          actionText="Benchmark Skills"
-          actionUrl="/dashboard/benchmarking"
-          onDismiss={() => setShowWorkflowPrompt(false)}
-          onAction={(action: string) => {
-            if (action === 'continue') {
-              WorkflowTracking.setWorkflowContext({
-                workflowId: 'market-intelligence-career-strategy',
-                marketTrends: {
-                  eventsBookmarked: events.filter(e => e.isBookmarked),
-                  roleModelsFollowed: roleModels.filter(m => following.includes(m.id)),
-                  trendingSkills: events.flatMap(e => e.skills).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10),
-                  industries: events.map(e => e.industry).filter((v, i, a) => a.indexOf(v) === i)
-                },
-                action: 'benchmark-skills-market'
-              });
-            }
-          }}
-        />
-      )}
-       
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

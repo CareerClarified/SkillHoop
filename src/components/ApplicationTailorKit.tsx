@@ -32,42 +32,6 @@ import {
   Brain,
 } from 'lucide-react';
 
-// --- Inline Sub-Components ---
-
-type WorkflowPromptAction = 'continue';
-
-interface WorkflowPromptProps {
-  message: string;
-  onDismiss: () => void;
-  onAction: (action: WorkflowPromptAction) => void;
-  actionText: string;
-}
-
-const WorkflowPrompt = ({
-  message,
-  onDismiss,
-  onAction,
-  actionText,
-}: WorkflowPromptProps) => (
-  <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-neutral-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-fade-in-up border border-white/10">
-    <span className="font-medium text-sm">{message}</span>
-    <div className="flex gap-2">
-      <button
-        onClick={() => onAction('continue')}
-        className="bg-white text-neutral-900 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors"
-      >
-        {actionText}
-      </button>
-      <button
-        onClick={onDismiss}
-        className="text-slate-400 hover:text-white transition-colors"
-      >
-        <X size={16} />
-      </button>
-    </div>
-  </div>
-);
-
 // --- Types ---
 
 type TailorStep = 'upload' | 'input' | 'strategy' | 'edit';
@@ -106,8 +70,6 @@ interface AnalysisData {
 const ApplicationTailorKit = () => {
   const [step, setStep] = useState<TailorStep>('upload');
 
-  // Workflow state
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvContent, setCvContent] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
@@ -365,7 +327,6 @@ BS Computer Science, University of Tech`;
       setTailoredResume(tailored);
       setStep('edit');
       setIsGenerating(false);
-      setShowWorkflowPrompt(true);
     }, 1500);
   };
 
@@ -405,15 +366,6 @@ BS Computer Science, University of Tech`;
 
   return (
     <div className="space-y-6 animate-fade-in-up bg-slate-50 min-h-screen">
-      {showWorkflowPrompt && tailoredResume && (
-        <WorkflowPrompt
-          message="🎉 Resume Tailored! Ready to save?"
-          actionText="Save to Tracker"
-          onDismiss={() => setShowWorkflowPrompt(false)}
-          onAction={() => setShowWorkflowPrompt(false)}
-        />
-      )}
-
       {/* Main Header Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <div className="lg:col-span-2 space-y-6">

@@ -22,9 +22,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { WorkflowTracking } from '../lib/workflowTracking';
-import WorkflowBreadcrumb from '../components/workflows/WorkflowBreadcrumb';
-import WorkflowTransition from '../components/workflows/WorkflowTransition';
-import WorkflowQuickActions from '../components/workflows/WorkflowQuickActions';
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
 import { 
   fetchLinkedInProfileOAuth, 
@@ -52,9 +49,8 @@ interface OptimizationRecommendation {
 export default function LinkedInOptimizer() {
   const navigate = useNavigate();
   
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
 
   // LinkedIn state
   const [linkedInUrl, setLinkedInUrl] = useState('');
@@ -274,8 +270,6 @@ export default function LinkedInOptimizer() {
           linkedInCompleteness: profileData.profileCompleteness,
           action: 'create-content'
         });
-
-        setShowWorkflowPrompt(true);
       }
     }
   };
@@ -300,36 +294,6 @@ export default function LinkedInOptimizer() {
         featureName="LinkedIn Optimizer"
       />
 
-      {/* Workflow Breadcrumb - Workflow 3 */}
-      {workflowContext?.workflowId === 'personal-brand-job-discovery' && (
-        <div className="mb-6">
-          <WorkflowBreadcrumb
-            workflowId="personal-brand-job-discovery"
-            currentFeaturePath="/dashboard/linkedin-optimizer"
-          />
-        </div>
-      )}
-
-      {/* Workflow Quick Actions - Workflow 3 */}
-      {workflowContext?.workflowId === 'personal-brand-job-discovery' && (
-        <div className="mb-6">
-          <WorkflowQuickActions
-            workflowId="personal-brand-job-discovery"
-            currentFeaturePath="/dashboard/linkedin-optimizer"
-          />
-        </div>
-      )}
-
-      {/* Workflow Transition - Workflow 3 */}
-      {workflowContext?.workflowId === 'personal-brand-job-discovery' && (
-        <div className="mb-6">
-          <WorkflowTransition
-            workflowId="personal-brand-job-discovery"
-            currentFeaturePath="/dashboard/linkedin-optimizer"
-          />
-        </div>
-      )}
-      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -344,14 +308,6 @@ export default function LinkedInOptimizer() {
           </p>
         </div>
       </div>
-
-      {/* Workflow Breadcrumb - Workflow 3 */}
-      {workflowContext?.workflowId === 'personal-brand-job-discovery' && (
-        <WorkflowBreadcrumb
-          workflowId="personal-brand-job-discovery"
-          currentFeaturePath="/dashboard/linkedin-optimizer"
-        />
-      )}
 
       {/* Connection Section */}
       {!isConnected && !profileData && (
@@ -662,42 +618,6 @@ export default function LinkedInOptimizer() {
         </>
       )}
 
-      {/* Workflow Prompt */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'personal-brand-job-discovery' && profileData && analysis && (
-        <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl p-6 text-white">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                <CheckCircle className="w-6 h-6" />
-                LinkedIn Optimization Complete!
-              </h3>
-              <p className="text-white/90 mb-4">
-                Great job! You've optimized your LinkedIn profile. Your optimization score is {analysis?.score || 0}/100.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    const nextStep = WorkflowTracking.getNextStep('personal-brand-job-discovery');
-                    if (nextStep) {
-                      navigate(nextStep.featurePath);
-                    }
-                  }}
-                  className="px-6 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-white/90 transition-all flex items-center gap-2"
-                >
-                  Continue to Next Step
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setShowWorkflowPrompt(false)}
-                  className="px-6 py-3 bg-white/20 text-white rounded-xl font-semibold hover:bg-white/30 transition-all"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

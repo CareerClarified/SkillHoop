@@ -200,50 +200,6 @@ function FeatureQuickStartWizard({
   );
 }
 
-function WorkflowBreadcrumb({ workflowId }: { workflowId: string }) {
-  return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2">
-      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-      <span>{workflowId === 'personal-brand-job-discovery' ? 'Personal Brand Building' : 'Workflow'}</span>
-      <ChevronRight size={12} />
-      <span className="text-neutral-900 font-bold">Current Step</span>
-    </div>
-  );
-}
-
-function WorkflowPrompt({
-  message,
-  actionText,
-  onDismiss,
-  onAction,
-}: {
-  message: string;
-  actionText: string;
-  onDismiss: () => void;
-  onAction: (action: 'continue') => void;
-}) {
-  return (
-    <div className="bg-indigo-600 text-white p-4 rounded-xl flex items-center justify-between shadow-lg shadow-indigo-600/20 mb-6 animate-fade-in-up">
-      <div className="flex items-center gap-3">
-        <div className="bg-white/20 p-2 rounded-full">
-          <Sparkles size={20} />
-        </div>
-        <span className="font-bold text-sm">{message}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onAction('continue')}
-          className="bg-white text-indigo-600 px-4 py-2 rounded-lg font-bold text-xs hover:bg-indigo-50 transition-colors"
-        >
-          {actionText}
-        </button>
-        <button onClick={onDismiss} className="text-white/60 hover:text-white p-1">
-          <X size={18} />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function UpgradeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
@@ -357,9 +313,8 @@ const getTimeAgo = (timestamp?: number) => {
 // -----------------------------
 
 const ContentEngine = () => {
-  // workflow
+  // workflow (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [showQuickStartWizard, setShowQuickStartWizard] = useState(false);
 
   // tabs + data
@@ -467,7 +422,6 @@ const ContentEngine = () => {
 
       if (workflowContext?.workflowId === 'personal-brand-job-discovery') {
         WorkflowTracking.updateStepStatus('personal-brand-job-discovery', 'create-content', 'completed', { type, topic, platforms });
-        setShowWorkflowPrompt(true);
         WorkflowTracking.setWorkflowContext({ contentCreated: true, action: 'showcase-portfolio' });
       }
     } catch (e) {
@@ -1349,15 +1303,6 @@ const ContentEngine = () => {
             { title: 'Schedule or Publish', description: 'Use the calendar to plan publishing and track performance in analytics.', tips: ['Schedule consistently', 'Review analytics weekly'], actionLabel: 'Get Started!' },
           ]}
         />
-
-        {showWorkflowPrompt && workflowContext?.workflowId === 'personal-brand-job-discovery' && (
-          <WorkflowPrompt
-            message="✅ Content Created! Your brand content has been generated. Showcase it in your portfolio!"
-            actionText="Showcase Portfolio"
-            onDismiss={() => setShowWorkflowPrompt(false)}
-            onAction={() => setShowWorkflowPrompt(false)}
-          />
-        )}
 
         <div className="mb-2">
           <div className="flex flex-wrap gap-2 bg-white border border-slate-200 rounded-2xl p-2 shadow-sm">

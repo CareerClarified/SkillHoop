@@ -66,32 +66,6 @@ const useWorkflowContext = () => {
   };
 };
 
-const WorkflowBreadcrumb = ({ workflowId }: { workflowId: string }) => (
-  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 mb-4 text-xs font-medium text-slate-500 flex items-center gap-2 w-fit">
-    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Active Workflow</span>
-    <span>{workflowId}</span>
-    <ChevronRight size={12} />
-    <span className="text-neutral-900 font-bold">Archive Version</span>
-  </div>
-);
-
-const WorkflowCompletion = ({ onDismiss }: { workflowId: string; onDismiss: () => void }) => (
-  <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6 flex items-center justify-between">
-    <div className="flex items-center gap-4">
-      <div className="bg-green-100 p-2 rounded-full text-green-600">
-        <CheckCircle2 size={24} />
-      </div>
-      <div>
-        <h4 className="font-bold text-green-900">Workflow Step Completed!</h4>
-        <p className="text-sm text-green-700">All documents archived successfully.</p>
-      </div>
-    </div>
-    <button onClick={onDismiss} className="text-green-600 hover:text-green-800">
-      <X size={20} />
-    </button>
-  </div>
-);
-
 // --- Work History Storage Service ---
 
 const WorkHistoryStorage = {
@@ -409,9 +383,8 @@ const WorkHistoryManager = ({ onNavigate }: any) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, _setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
 
   // UI State
   const [activeTab, setActiveTab] = useState('all');
@@ -553,7 +526,6 @@ const WorkHistoryManager = ({ onNavigate }: any) => {
             WorkflowTracking.updateStepStatus('job-application-pipeline', 'archive-documents', 'completed', {
               documentsArchived: loaded.length,
             });
-            setShowWorkflowPrompt(true);
           }
         }
       } catch (err) {
@@ -774,54 +746,6 @@ const WorkHistoryManager = ({ onNavigate }: any) => {
 
   return (
     <div className="space-y-6 animate-fade-in-up flex flex-col h-full">
-      {/* Workflow Breadcrumb */}
-      {workflowContext?.workflowId === 'document-consistency-version-control' && <WorkflowBreadcrumb workflowId="Document Consistency" />}
-
-      {/* Workflow Completion */}
-      {(() => {
-        const workflow = WorkflowTracking.getWorkflow('document-consistency-version-control');
-        return workflowContext?.workflowId === 'document-consistency-version-control' && workflow?.completedAt ? (
-          <WorkflowCompletion workflowId="document-consistency-version-control" onDismiss={() => {}} />
-        ) : null;
-      })()}
-
-      {/* Workflow Prompt */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'job-application-pipeline' && documents.length > 0 && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2">✅ Documents Archived!</h3>
-              <p className="text-white/90 mb-4">Your tailored resume and cover letter have been saved to your work history.</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    WorkflowTracking.setWorkflowContext({
-                      workflowId: 'job-application-pipeline',
-                      currentJob: workflowContext?.currentJob,
-                      action: 'interview-prep',
-                    });
-                    if (onNavigate) onNavigate('interview-prep');
-                  }}
-                  className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-white/90 transition-all flex items-center gap-2"
-                >
-                  Start Interview Prep
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setShowWorkflowPrompt(false)}
-                  className="px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
-                >
-                  Continue Later
-                </button>
-              </div>
-            </div>
-            <button onClick={() => setShowWorkflowPrompt(false)} className="text-white/70 hover:text-white transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Toast Notification */}
       {toast && (
         <div

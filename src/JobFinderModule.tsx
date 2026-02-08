@@ -210,16 +210,6 @@ const generateMockJobs = (query: string, location: string, count = 15) => {
   });
 };
 
-const WorkflowPrompt = ({ message, onDismiss, onAction, actionText }: any) => (
-  <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-neutral-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-fade-in-up border border-white/10">
-    <span className="font-medium text-sm">{message}</span>
-    <div className="flex gap-2">
-        <button onClick={() => onAction('continue')} className="bg-white text-neutral-900 hover:bg-slate-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors">{actionText}</button>
-        <button onClick={onDismiss} className="text-slate-400 hover:text-white transition-colors"><X size={16}/></button>
-    </div>
-  </div>
-);
-
 // --- Main Component ---
 
 const JobFinder = ({ onViewChange, initialSearchTerm }: any) => {
@@ -235,10 +225,9 @@ const JobFinder = ({ onViewChange, initialSearchTerm }: any) => {
   const [activeTab, setActiveTab] = useState('search'); // 'search' | 'resumes' | 'history'
   const [historySubTab, setHistorySubTab] = useState('search-results'); 
   
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const { workflowContext, updateContext } = useWorkflowContext();
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
-  
+
   // Quick Search state
   const [quickSearchJobTitle, setQuickSearchJobTitle] = useState(initialSearchTerm || '');
   const [quickSearchLocation, setQuickSearchLocation] = useState('');
@@ -642,7 +631,6 @@ const JobFinder = ({ onViewChange, initialSearchTerm }: any) => {
         }
         
         if (workflow1.isActive) {
-          setShowWorkflowPrompt(true);
           updateContext({
             workflowId: 'job-application-pipeline',
             currentJob: {
@@ -824,24 +812,6 @@ const JobFinder = ({ onViewChange, initialSearchTerm }: any) => {
             <span className="font-medium">{notification.message}</span>
           </div>
         </div>
-      )}
-
-      {showWorkflowPrompt && workflowContext?.workflowId === 'job-application-pipeline' && (
-        <WorkflowPrompt
-          message="🎉 Job Saved to Tracker! You're making great progress in your Job Application Pipeline workflow."
-          actionText="View Tracker"
-          onDismiss={() => setShowWorkflowPrompt(false)}
-          onAction={(action: string) => {
-            if (action === 'continue') {
-               updateContext({
-                 workflowId: 'job-application-pipeline',
-                 currentJob: workflowContext.currentJob,
-                 action: 'view-tracker'
-               });
-               navigateTo('/dashboard/tracker');
-            }
-          }}
-        />
       )}
 
       <div className="flex items-center gap-2 p-2 rounded-2xl border bg-white border-slate-200 shadow-sm overflow-x-auto">

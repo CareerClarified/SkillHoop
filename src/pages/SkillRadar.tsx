@@ -9,10 +9,6 @@ import {
 import UpgradeModal from '../components/ui/UpgradeModal';
 import FeatureGate from '../components/auth/FeatureGate';
 import { WorkflowTracking } from '../lib/workflowTracking';
-import WorkflowBreadcrumb from '../components/workflows/WorkflowBreadcrumb';
-import WorkflowTransition from '../components/workflows/WorkflowTransition';
-import WorkflowQuickActions from '../components/workflows/WorkflowQuickActions';
-import WorkflowPrompt from '../components/workflows/WorkflowPrompt';
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -260,9 +256,8 @@ const categories = [
 export default function SkillRadar() {
   const navigate = useNavigate();
   
-  // Workflow state
+  // Workflow state (for tracking only; UI lives in dashboard Workflow tab)
   const [workflowContext, setWorkflowContext] = useState<any>(null);
-  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
   const [watchedSkills, setWatchedSkills] = useState<string[]>([]);
   const [activeView, setActiveView] = useState('radar');
   const [selectedRole, setSelectedRole] = useState(targetRoles[0]);
@@ -299,8 +294,6 @@ export default function SkillRadar() {
             demandScore: s.demandScore
           }))
         });
-        
-        setShowWorkflowPrompt(true);
       }
     }
     
@@ -330,8 +323,6 @@ export default function SkillRadar() {
           })),
           action: 'develop-skills'
         });
-        
-        setShowWorkflowPrompt(true);
       }
     }
   };
@@ -382,108 +373,6 @@ export default function SkillRadar() {
         featureName="Skill Radar"
       />
       
-      {/* Workflow Breadcrumb - Workflow 2 */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <WorkflowBreadcrumb
-          workflowId="skill-development-advancement"
-          currentFeaturePath="/dashboard/skill-radar"
-        />
-      )}
-
-      {/* Workflow Breadcrumb - Workflow 5 */}
-      {workflowContext?.workflowId === 'continuous-improvement-loop' && (
-        <WorkflowBreadcrumb
-          workflowId="continuous-improvement-loop"
-          currentFeaturePath="/dashboard/skill-radar"
-        />
-      )}
-
-      {/* Workflow Quick Actions - Workflow 2 */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && (
-        <WorkflowQuickActions
-          workflowId="skill-development-advancement"
-          currentFeaturePath="/dashboard/skill-radar"
-        />
-      )}
-
-      {/* Workflow Quick Actions - Workflow 5 */}
-      {workflowContext?.workflowId === 'continuous-improvement-loop' && (
-        <WorkflowQuickActions
-          workflowId="continuous-improvement-loop"
-          currentFeaturePath="/dashboard/skill-radar"
-        />
-      )}
-
-      {/* Workflow Transition - Workflow 2 (after skills identified) */}
-      {workflowContext?.workflowId === 'skill-development-advancement' && watchlistSkills.length > 0 && (
-        <WorkflowTransition
-          workflowId="skill-development-advancement"
-          currentFeaturePath="/dashboard/skill-radar"
-          compact={true}
-        />
-      )}
-
-      {/* Workflow Transition - Workflow 5 (after improvements identified) */}
-      {workflowContext?.workflowId === 'continuous-improvement-loop' && watchlistSkills.length > 0 && (
-        <WorkflowTransition
-          workflowId="continuous-improvement-loop"
-          currentFeaturePath="/dashboard/skill-radar"
-          compact={true}
-        />
-      )}
-
-      {/* Workflow Prompt - Workflow 2 */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'skill-development-advancement' && watchlistSkills.length > 0 && (
-        <WorkflowPrompt
-          workflowId="skill-development-advancement"
-          currentFeaturePath="/dashboard/skill-radar"
-          message={`✅ Skills Identified! You've identified ${watchlistSkills.length} skill${watchlistSkills.length !== 1 ? 's' : ''} to develop. Ready to benchmark them?`}
-          actionText="Benchmark Skills"
-          actionUrl="/dashboard/benchmarking"
-          onDismiss={() => setShowWorkflowPrompt(false)}
-          onAction={(action) => {
-            if (action === 'continue') {
-              WorkflowTracking.setWorkflowContext({
-                workflowId: 'skill-development-advancement',
-                identifiedSkills: workflowContext?.identifiedSkills || watchlistSkills.map(s => ({
-                  name: s.name,
-                  category: s.category,
-                  demandScore: s.demandScore
-                })),
-                action: 'benchmark-skills'
-              });
-            }
-          }}
-        />
-      )}
-
-      {/* Workflow Prompt - Workflow 5 */}
-      {showWorkflowPrompt && workflowContext?.workflowId === 'continuous-improvement-loop' && watchlistSkills.length > 0 && (
-        <WorkflowPrompt
-          workflowId="continuous-improvement-loop"
-          currentFeaturePath="/dashboard/skill-radar"
-          message={`✅ Improvement Areas Identified! You've identified ${watchlistSkills.length} skill${watchlistSkills.length !== 1 ? 's' : ''} to improve. Ready to develop them?`}
-          actionText="Develop Skills"
-          actionUrl="/dashboard/learning-path"
-          onDismiss={() => setShowWorkflowPrompt(false)}
-          onAction={(action) => {
-            if (action === 'continue') {
-              WorkflowTracking.setWorkflowContext({
-                workflowId: 'continuous-improvement-loop',
-                outcomes: workflowContext?.outcomes,
-                improvementAreas: watchlistSkills.map(s => ({
-                  name: s.name,
-                  category: s.category,
-                  demandScore: s.demandScore
-                })),
-                action: 'develop-skills'
-              });
-              navigate('/dashboard/learning-path');
-            }
-          }}
-        />
-      )}
-
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
