@@ -17,6 +17,7 @@ import WorkflowRecommendationsComponent from '../components/dashboard/WorkflowRe
 import WorkflowWizard from '../components/workflows/WorkflowWizard';
 import ActiveWorkflowsCards from '../components/dashboard/ActiveWorkflowsCards';
 import PersistentNotificationBanner from '../components/widgets/PersistentNotificationBanner';
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 // MissionCard Component
 interface MissionCardProps {
@@ -948,9 +949,11 @@ export default function DashboardHome() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-12 h-12 border-4 border-slate-200 border-t-neutral-900 rounded-full animate-spin"></div>
-      </div>
+      <LoadingScreen
+        message="Just a moment..."
+        subMessage="Loading dashboard..."
+        fullScreen={false}
+      />
     );
   }
 

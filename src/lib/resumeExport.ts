@@ -94,8 +94,9 @@ export function decompressFromUrl(compressed: string): string {
 // --- Export Functions ---
 
 /**
- * Export resume as PDF using html2pdf.js
- * Generates PDF directly without browser print dialog
+ * Export resume as PDF using html2pdf.js (DOM screenshot; not selectable/ATS-optimal).
+ * @deprecated Prefer getResumePdfBlob + download from ResumePDFDocument for native, selectable PDFs.
+ * This remains for legacy callers that pass HTML content only.
  */
 export async function exportToPDF(options: ExportOptions): Promise<boolean> {
   const {

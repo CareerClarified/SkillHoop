@@ -29,6 +29,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 // --- Mocks & Generators ---
 
@@ -481,8 +482,12 @@ const InterviewPrep = () => {
         {/* Loading State */}
         {loading && !showSampleAnswer && !showPracticeModal && !showCompanyResearch && (
           <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-            <Loader2 className="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-4" />
-            <p className="text-slate-600 font-medium">Loading prep data...</p>
+            <LoadingScreen
+              message="Just a moment..."
+              subMessage="Loading prep data..."
+              fullScreen={false}
+              logoSize={80}
+            />
           </div>
         )}
 

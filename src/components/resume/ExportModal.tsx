@@ -10,7 +10,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { ResumeData } from '../../types/resume';
-import { exportToPDF, exportToHTML, exportToTXT, exportToDOCX } from '../../lib/resumeExport';
+import { exportToHTML, exportToTXT, exportToDOCX } from '../../lib/resumeExport';
+import { getResumePdfBlob } from './ResumePDFDocument';
 import { resumeToHTML } from '../../lib/resumeToHTML';
 import { getModalZIndexClass, getModalBackdropZIndexClass } from '../../lib/zIndex';
 
@@ -42,9 +43,18 @@ export default function ExportModal({ isOpen, onClose, resume }: ExportModalProp
       };
 
       switch (format) {
-        case 'pdf':
-          await exportToPDF(options);
+        case 'pdf': {
+          const blob = await getResumePdfBlob(resume);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${(resume.title || 'Resume').replace(/[^a-zA-Z0-9\s\-_.]/g, '').replace(/\s+/g, '_').substring(0, 100)}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
           break;
+        }
         case 'html':
           exportToHTML(options);
           break;

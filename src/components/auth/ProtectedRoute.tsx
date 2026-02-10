@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import LogoLoader from '../ui/LogoLoader';
+import LoadingScreen from '../ui/LoadingScreen';
 
 export default function ProtectedRoute() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -23,18 +23,12 @@ export default function ProtectedRoute() {
     checkSession();
   }, []);
 
-  // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <LogoLoader className="w-16 h-16" />
-          </div>
-          <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
-          <p className="text-indigo-500 text-sm">Screen loading</p>
-        </div>
-      </div>
+      <LoadingScreen
+        message="Just a moment..."
+        subMessage="Screen loading"
+      />
     );
   }
 

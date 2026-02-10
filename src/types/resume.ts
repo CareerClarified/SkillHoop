@@ -71,6 +71,10 @@ export interface FormattingSettings {
   fontSize: number;
   accentColor: string;
   lineHeight: number;
+  /** Optional user-selected theme color (preferred over accentColor for templates). */
+  themeColor?: string;
+  /** Optional generic color key from older settings; treated like themeColor. */
+  color?: string;
   layout?: 'classic' | 'modern' | 'columns';
   templateId?: string;
 }

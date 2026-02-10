@@ -40,6 +40,7 @@ import FeatureGate from '../components/auth/FeatureGate';
 import { WorkflowTracking } from '../lib/workflowTracking';
 import FirstTimeEntryCard from '../components/workflows/FirstTimeEntryCard';
 import FeatureQuickStartWizard from '../components/workflows/FeatureQuickStartWizard';
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 const InterviewPrep = () => {
   const navigate = useNavigate();
@@ -1127,9 +1128,13 @@ Return ONLY valid JSON, no additional text.`,
 
       {/* Loading State */}
       {loading && !showSampleAnswer && !showPracticeModal && !showCompanyResearch && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
-          <p className="text-indigo-700">Loading interview preparation data...</p>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+          <LoadingScreen
+            message="Just a moment..."
+            subMessage="Loading interview preparation data..."
+            fullScreen={false}
+            logoSize={80}
+          />
         </div>
       )}
 

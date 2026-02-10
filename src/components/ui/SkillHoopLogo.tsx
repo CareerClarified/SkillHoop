@@ -6,7 +6,24 @@ interface SkillHoopLogoProps {
   height?: number;
   /** When true, show only the icon (rounded box + arrows), no "SkillHoop" text */
   iconOnly?: boolean;
+  /** When true, apply arrow-flow animation (for loading states) */
+  animated?: boolean;
 }
+
+const animatedLoaderStyle = `
+  @keyframes arrow-flow {
+    0% { opacity: 0.5; transform: translateX(0px); }
+    50% { opacity: 1; transform: translateX(3px); }
+    100% { opacity: 0.5; transform: translateX(0px); }
+  }
+  @keyframes glint-sweep {
+    0% { transform: translateX(-150%) skewX(-25deg); }
+    50%, 100% { transform: translateX(150%) skewX(-25deg); }
+  }
+  .arrow-1 { animation: arrow-flow 1.5s ease-in-out infinite; }
+  .arrow-2 { animation: arrow-flow 1.5s ease-in-out infinite 0.25s; }
+  .glint-layer { animation: glint-sweep 3s ease-in-out infinite; }
+`;
 
 const logoDefs = (
   <defs>
@@ -79,12 +96,101 @@ const iconMark = (
   </g>
 );
 
+/** Animated icon for loading: arrow-flow + glint sweep, clipped to rounded icon */
+const animatedIconMark = (
+  <g clipPath="url(#icon-clip)">
+    <rect x="0" y="0" width="64" height="64" rx="19" fill="#171717" />
+    <rect
+      x="-64"
+      y="0"
+      width="192"
+      height="64"
+      fill="url(#glint-grad)"
+      className="glint-layer"
+    />
+    <rect x="2" y="2" width="60" height="60" rx="17" fill="white" fillOpacity="0.02" />
+    <path
+      d="M19 2 C10 2 2 10 2 19 L2 30 C15 24 49 24 62 30 L62 19 C62 10 54 2 45 2 Z"
+      fill="url(#glass-glaze)"
+    />
+    <rect
+      x="0.75"
+      y="0.75"
+      width="62.5"
+      height="62.5"
+      rx="18.25"
+      stroke="url(#edge-catch)"
+      strokeWidth="1.2"
+    />
+    <g transform="translate(3.5, -0.5) scale(0.92)">
+      <g transform="rotate(-45 32 32)">
+        <path
+          className="arrow-1"
+          d="M16 18 L30 32 L16 46"
+          stroke="#FFFFFF"
+          strokeWidth="6.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          className="arrow-2"
+          d="M34 18 L48 32 L34 46"
+          stroke="#FFFFFF"
+          strokeWidth="6.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+    </g>
+  </g>
+);
+
 const SkillHoopLogo: React.FC<SkillHoopLogoProps> = ({
   className = "",
   width = 350,
   height = 70,
   iconOnly = false,
+  animated = false,
 }) => {
+  if (iconOnly && animated) {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="SkillHoop Animated Icon"
+        className={className}
+      >
+        <defs>
+          <style>{animatedLoaderStyle}</style>
+          <clipPath id="icon-clip">
+            <rect x="0" y="0" width="64" height="64" rx="19" />
+          </clipPath>
+          <linearGradient id="glint-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="45%" stopColor="white" stopOpacity="0" />
+            <stop offset="50%" stopColor="white" stopOpacity="0.12" />
+            <stop offset="55%" stopColor="white" stopOpacity="0" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="glass-glaze" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.15" />
+            <stop offset="40%" stopColor="white" stopOpacity="0.05" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="edge-catch" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+            <stop offset="50%" stopColor="white" stopOpacity="0.05" />
+            <stop offset="100%" stopColor="white" stopOpacity="0.2" />
+          </linearGradient>
+        </defs>
+        {animatedIconMark}
+      </svg>
+    );
+  }
+
   if (iconOnly) {
     return (
       <svg

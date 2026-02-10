@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Plus, Send, Eye, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import LogoLoader from '../components/ui/LogoLoader';
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 interface BlogPost {
   id: string;
@@ -182,15 +182,10 @@ export default function AdminBlog() {
   // Loading state - show loader while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <LogoLoader className="w-16 h-16" />
-          </div>
-          <p className="text-indigo-600 font-medium mb-2">Loading admin panel...</p>
-          <p className="text-indigo-500 text-sm">Just a moment...</p>
-        </div>
-      </div>
+      <LoadingScreen
+        message="Just a moment..."
+        subMessage="Loading admin panel..."
+      />
     );
   }
 
@@ -214,7 +209,7 @@ export default function AdminBlog() {
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
           <p className="text-slate-600 mb-4">You don't have permission to access this page.</p>
           <button
-            onClick={() => navigate('/mi')}
+            onClick={() => navigate('/dashboard')}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
           >
             Go to Dashboard
@@ -292,7 +287,7 @@ export default function AdminBlog() {
                 id="featurePath"
                 value={featurePath}
                 onChange={(e) => setFeaturePath(e.target.value)}
-                placeholder="e.g., /mi"
+                placeholder="e.g., /dashboard"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />

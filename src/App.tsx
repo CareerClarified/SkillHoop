@@ -1,9 +1,9 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
+import LoadingScreen from './components/ui/LoadingScreen';
 
 // Lazy load components for code splitting
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
@@ -24,19 +24,14 @@ const AdminBlog = lazy(() => import('./pages/AdminBlog'));
 const Test = lazy(() => import('./pages/Test'));
 const DashboardShell = lazy(() => import('./pages/DashboardShell'));
 
-// Loading fallback component
 function LoadingFallback() {
-  return (
-    <div className="flex h-screen items-center justify-center bg-slate-50">
-      <div className="text-center">
-        <div className="flex items-center justify-center mb-4">
-          <Loader2 className="w-16 h-16 text-indigo-600 animate-spin" />
-        </div>
-        <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
-        <p className="text-indigo-500 text-sm">Loading Application</p>
-      </div>
-    </div>
-  );
+  return <LoadingScreen subMessage="Loading Application" />;
+}
+
+function RedirectMiToDashboard() {
+  const location = useLocation();
+  const to = location.pathname.replace(/^\/mi\/?/, '/dashboard') || '/dashboard';
+  return <Navigate to={to + location.search + location.hash} replace />;
 }
 
 function App() {
@@ -87,14 +82,14 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/email-sent" element={<EmailSentPage />} />
           
-          {/* Main app (auth) - Dashboard shell with SkillHoopSidebar */}
+          {/* Main app (auth) - Dashboard with dynamic routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/mi" element={<DashboardShell />} />
+            <Route path="/dashboard" element={<DashboardShell />} />
+            <Route path="/dashboard/*" element={<DashboardShell />} />
           </Route>
           
-          {/* Redirect old dashboard URLs to main app */}
-          <Route path="/dashboard" element={<Navigate to="/mi" replace />} />
-          <Route path="/dashboard/*" element={<Navigate to="/mi" replace />} />
+          {/* Redirect legacy /mi URLs to /dashboard (preserve subpath) */}
+          <Route path="/mi/*" element={<RedirectMiToDashboard />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

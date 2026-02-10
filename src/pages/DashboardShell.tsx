@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
 Briefcase,
 Layout,
@@ -397,10 +397,18 @@ return (
 
 // --- 4. Main Dashboard Component ---
 
+/** Derive active view from URL path (e.g. /dashboard/resume -> 'resume', /dashboard -> 'overview'). */
+function getActiveViewFromPath(pathname: string): string {
+  const base = '/dashboard';
+  if (pathname === base || pathname === base + '/') return 'overview';
+  const segment = pathname.slice(base.length).replace(/^\//, '') || 'overview';
+  return segment;
+}
+
 const DashboardShell = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState('overview');
-  const [dashboardMode, setDashboardMode] = useState('overview'); // 'overview' | 'workflow'
+  const location = useLocation();
+  const activeView = getActiveViewFromPath(location.pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<number[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -458,8 +466,6 @@ return (
   {/* Sidebar */}
   <div className="hidden lg:flex">
     <SkillHoopSidebar
-      activeView={activeView}
-      onNavigate={setActiveView}
       collapsed={sidebarCollapsed}
       onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
       dragMode={isCustomizingShortcuts}
@@ -472,10 +478,10 @@ return (
     <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-20 px-6 py-4 flex items-center justify-between relative">
         <div className="flex items-center gap-4 lg:hidden"><div className="bg-neutral-900 p-1.5 rounded-lg shadow-sm"><div className="h-4 w-4 bg-white rounded-sm" /></div></div>
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-           {activeView === 'overview' ? (
+           {activeView === 'overview' || activeView === 'workflow' ? (
              <div className="flex p-1 bg-slate-100 rounded-lg w-fit">
-                <button onClick={() => setDashboardMode('overview')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${dashboardMode === 'overview' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Overview</button>
-                <button onClick={() => setDashboardMode('workflow')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${dashboardMode === 'workflow' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Workflow</button>
+                <Link to="/dashboard" className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeView === 'overview' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Overview</Link>
+                <Link to="/dashboard/workflow" className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeView === 'workflow' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Workflow</Link>
              </div>
            ) : activeView !== 'settings' && FEATURE_HEADER_META[activeView] ? (
              <>
@@ -496,7 +502,7 @@ return (
               isCustomizing={isCustomizingShortcuts}
               onRemove={removeShortcut}
               onDrop={addShortcut}
-              onNavigate={setActiveView}
+              onNavigate={(id) => navigate(`/dashboard/${id}`)}
             />
             <div className="relative">
                 <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 pl-4 border-l border-slate-200 focus:outline-none">
@@ -522,7 +528,7 @@ return (
                         <Grid size={16} /> {isCustomizingShortcuts ? 'Done Customizing' : 'Customize Shortcuts'}
                       </button>
                         <button
-                        onClick={() => { setActiveView('settings'); setIsProfileOpen(false); }}
+                        onClick={() => { navigate('/dashboard/settings'); setIsProfileOpen(false); }}
                         className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-neutral-900 flex items-center gap-3 transition-colors"
                       >
                         <Settings size={16} /> Settings
@@ -578,11 +584,11 @@ return (
           <SkillBenchmarking />
         ) : activeView === 'settings' ? (
           <SettingsModule />
-        ) : activeView === 'overview' && dashboardMode === 'overview' ? (
+        ) : activeView === 'overview' ? (
           <div className="w-full">
             <SkillHoopOverview />
             </div>
-        ) : activeView === 'overview' && dashboardMode === 'workflow' ? (
+        ) : activeView === 'workflow' ? (
           <WorkflowsView darkMode={false} onSelectWorkflow={handleSelectWorkflow} dismissedSuggestions={dismissedSuggestions} handleDismissSuggestion={handleDismissSuggestion} stats={mockStats} />
         ) : (
           <div className="text-center py-12">

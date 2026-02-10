@@ -36,7 +36,7 @@ function Login() {
             window.history.replaceState(null, '', window.location.pathname);
             // Redirect to dashboard after a short delay
             setTimeout(() => {
-              navigate('/mi');
+              navigate('/dashboard');
             }, 2000);
           }
         } catch (err) {
@@ -73,7 +73,7 @@ function Login() {
         setError(errorMessage);
         console.error('Login error:', error);
       } else if (data && data.session) {
-        navigate('/mi');
+        navigate('/dashboard');
       } else {
         setError('Login succeeded but no session was created. Please try again.');
       }
@@ -97,7 +97,7 @@ function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${window.location.origin}/mi`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;
@@ -116,7 +116,7 @@ function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/mi`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;

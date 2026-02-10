@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Briefcase, 
   FileText, 
@@ -20,19 +21,24 @@ import {
 } from 'lucide-react';
 import SkillHoopLogo from '@/components/ui/SkillHoopLogo';
 
+/** True when the given item id matches the current route (e.g. resume matches /dashboard/resume). */
+function isActiveRoute(pathname: string, itemId: string): boolean {
+  const base = '/dashboard/';
+  const segment = pathname.startsWith(base) ? pathname.slice(base.length).replace(/\/.*$/, '') : '';
+  return segment === itemId;
+}
+
 const SkillHoopSidebar = ({ 
-  activeView = 'overview', 
-  onNavigate = (view: string) => console.log(view),
   collapsed = false,
   onToggleCollapse,
   dragMode = false,
 }: { 
-  activeView?: string; 
-  onNavigate?: (view: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   dragMode?: boolean;
 }) => {
+  const location = useLocation();
+  const pathname = location.pathname;
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (category: string) => {
@@ -83,9 +89,9 @@ const SkillHoopSidebar = ({
     >
       {/* Header / Logo */}
       <div className={`sticky top-0 bg-white z-10 flex ${collapsed ? 'p-3 flex-col items-center gap-2' : 'items-center p-6'}`}>
-        <div 
-          className={`flex items-center cursor-pointer overflow-hidden ${collapsed ? 'justify-center w-8' : ''}`}
-          onClick={() => onNavigate('overview')}
+        <NavLink 
+          to="/dashboard"
+          className={`flex items-center overflow-hidden ${collapsed ? 'justify-center w-8' : ''}`}
         >
           <SkillHoopLogo 
             width={collapsed ? 32 : 140} 
@@ -93,7 +99,7 @@ const SkillHoopSidebar = ({
             className={collapsed ? 'h-8 w-8' : 'h-8'} 
             iconOnly={collapsed}
           />
-        </div>
+        </NavLink>
         {collapsed && onToggleCollapse && (
           <button
             type="button"
@@ -111,26 +117,24 @@ const SkillHoopSidebar = ({
         {collapsed ? (
           /* Collapsed: only icons — Dashboard first, then all menu items in order */
           <>
-            <button
-              type="button"
-              onClick={() => onNavigate('overview')}
-              className={`p-2.5 rounded-xl transition-colors ${activeView === 'overview' ? 'bg-neutral-900 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) => `p-2.5 rounded-xl transition-colors block ${isActive ? 'bg-neutral-900 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
               title="Dashboard"
             >
               <BarChart3 size={18} />
-            </button>
+            </NavLink>
             {sidebarStructure.filter(s => s.category !== 'Dashboard').flatMap(section => section.items).map((item) => (
-              <button
+              <NavLink
                 key={item.id}
-                type="button"
-                onClick={() => onNavigate(item.id)}
+                to={`/dashboard/${item.id}`}
                 draggable={dragMode}
                 onDragStart={dragMode ? (e) => { e.dataTransfer.setData('text/plain', item.id); e.dataTransfer.effectAllowed = 'copy'; } : undefined}
-                className={`p-2.5 rounded-xl transition-colors ${activeView === item.id ? 'bg-neutral-900 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200'} ${dragMode ? 'cursor-grab active:cursor-grabbing hover:border hover:border-dashed hover:border-slate-400 dark:hover:border-slate-500' : ''}`}
+                className={({ isActive }) => `p-2.5 rounded-xl transition-colors block ${isActive ? 'bg-neutral-900 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200'} ${dragMode ? 'cursor-grab active:cursor-grabbing hover:border hover:border-dashed hover:border-slate-400 dark:hover:border-slate-500' : ''}`}
                 title={item.label}
               >
                 <item.icon size={18} />
-              </button>
+              </NavLink>
             ))}
           </>
         ) : (
@@ -165,22 +169,25 @@ const SkillHoopSidebar = ({
                     />
                   </div>
                   <div className={`space-y-1 ${collapsedCategories[section.category] ? 'hidden' : 'block'}`}>
-                    {section.items.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => onNavigate(item.id)}
-                        draggable={dragMode}
-                        onDragStart={dragMode ? (e) => { e.dataTransfer.setData('text/plain', item.id); e.dataTransfer.effectAllowed = 'copy'; } : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                          activeView === item.id
-                            ? 'bg-neutral-900 text-white shadow-md'
-                            : 'text-slate-500 hover:bg-slate-50 hover:text-neutral-900'
-                        } ${dragMode ? 'cursor-grab active:cursor-grabbing hover:border hover:border-dashed hover:border-slate-400 dark:hover:border-slate-500' : ''}`}
-                      >
-                        <item.icon size={18} className={`${activeView === item.id ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                        {item.label}
-                      </button>
-                    ))}
+                    {section.items.map((item) => {
+                      const active = isActiveRoute(pathname, item.id);
+                      return (
+                        <NavLink
+                          key={item.id}
+                          to={`/dashboard/${item.id}`}
+                          draggable={dragMode}
+                          onDragStart={dragMode ? (e) => { e.dataTransfer.setData('text/plain', item.id); e.dataTransfer.effectAllowed = 'copy'; } : undefined}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                            active
+                              ? 'bg-neutral-900 text-white shadow-md'
+                              : 'text-slate-500 hover:bg-slate-50 hover:text-neutral-900'
+                          } ${dragMode ? 'cursor-grab active:cursor-grabbing hover:border hover:border-dashed hover:border-slate-400 dark:hover:border-slate-500' : ''}`}
+                        >
+                          <item.icon size={18} className={`${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                          {item.label}
+                        </NavLink>
+                      );
+                    })}
                   </div>
                 </>
               )}

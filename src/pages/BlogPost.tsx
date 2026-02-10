@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft } from 'lucide-react';
 import { sanitizeHTML, sanitizeText } from '../lib/inputSanitization';
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 interface BlogPost {
   id: string;
@@ -58,14 +59,10 @@ export default function BlogPost() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 py-12">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-slate-600">Loading blog post...</p>
-          </div>
-        </div>
-      </div>
+      <LoadingScreen
+        message="Just a moment..."
+        subMessage="Loading blog post..."
+      />
     );
   }
 

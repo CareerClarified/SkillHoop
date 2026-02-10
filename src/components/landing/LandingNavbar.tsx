@@ -123,7 +123,7 @@ const Navbar = ({ activePage }: NavbarProps) => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <Link to="/mi" className="text-slate-600 hover:text-neutral-900 text-base font-medium transition-colors">
+                <Link to="/dashboard" className="text-slate-600 hover:text-neutral-900 text-base font-medium transition-colors">
                   Dashboard
                 </Link>
                 <button 
@@ -182,7 +182,7 @@ const Navbar = ({ activePage }: NavbarProps) => {
               {isAuthenticated ? (
                 <>
                   <Link 
-                    to="/mi"
+                    to="/dashboard"
                     className="block w-full text-left px-4 py-3 text-slate-600 hover:text-neutral-900 hover:bg-slate-50 rounded-xl transition-colors"
                     onClick={() => setIsOpen(false)}
                   >

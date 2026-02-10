@@ -2,7 +2,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Lock, Sparkles, ArrowRight } from 'lucide-react';
-import LogoLoader from '../ui/LogoLoader';
+import LoadingScreen from '../ui/LoadingScreen';
 
 type Tier = 'free' | 'pro' | 'ultimate';
 type RequiredTier = 'pro' | 'ultimate';
@@ -66,18 +66,13 @@ export default function FeatureGate({ requiredTier, children }: FeatureGateProps
     fetchUserTier();
   }, []);
 
-  // Show loading spinner
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <LogoLoader className="w-16 h-16" />
-          </div>
-          <p className="text-indigo-600 font-medium mb-2">Just a moment...</p>
-          <p className="text-indigo-500 text-sm">Screen loading</p>
-        </div>
-      </div>
+      <LoadingScreen
+        message="Just a moment..."
+        subMessage="Screen loading"
+        className="bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50"
+      />
     );
   }
 

@@ -50,7 +50,7 @@ function Signup() {
           console.log('✅ Account created and logged in!');
           // Auto-redirect to dashboard after a short delay
           setTimeout(() => {
-            navigate('/mi');
+            navigate('/dashboard');
           }, 2000);
         } else {
           setSuccess(true);
@@ -78,7 +78,7 @@ function Signup() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
-          redirectTo: `${window.location.origin}/mi`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;
@@ -97,7 +97,7 @@ function Signup() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/mi`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;

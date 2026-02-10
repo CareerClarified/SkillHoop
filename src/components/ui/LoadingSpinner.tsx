@@ -1,9 +1,11 @@
 /**
  * LoadingSpinner
- * Reusable loading spinner component with different sizes and variants
+ * Reusable loading spinner component with different sizes and variants.
+ * fullScreen mode uses the SkillHoop logo loading screen for consistency.
  */
 
 import { Loader2 } from 'lucide-react';
+import LoadingScreen from './LoadingScreen';
 
 export interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -34,6 +36,18 @@ export default function LoadingSpinner({
     xl: 'text-lg',
   };
 
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 z-50">
+        <LoadingScreen
+          message={text ?? 'Just a moment...'}
+          subMessage=""
+          fullScreen
+        />
+      </div>
+    );
+  }
+
   const spinner = (
     <div className={`flex flex-col items-center justify-center gap-2 ${className}`}>
       <Loader2 className={`${sizeClasses[size]} animate-spin text-indigo-600`} />
@@ -42,14 +56,6 @@ export default function LoadingSpinner({
       )}
     </div>
   );
-
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-        {spinner}
-      </div>
-    );
-  }
 
   if (overlay) {
     return (
