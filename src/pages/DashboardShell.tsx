@@ -477,7 +477,7 @@ return (
                 <button onClick={() => setDashboardMode('overview')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${dashboardMode === 'overview' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Overview</button>
                 <button onClick={() => setDashboardMode('workflow')} className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${dashboardMode === 'workflow' ? 'bg-white text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Workflow</button>
              </div>
-           ) : FEATURE_HEADER_META[activeView] ? (
+           ) : activeView !== 'settings' && FEATURE_HEADER_META[activeView] ? (
              <>
                <h1 className="text-lg font-bold text-neutral-900 truncate">{FEATURE_HEADER_META[activeView].title}</h1>
                <p className="text-sm text-slate-500 truncate max-w-xl">{FEATURE_HEADER_META[activeView].description}</p>

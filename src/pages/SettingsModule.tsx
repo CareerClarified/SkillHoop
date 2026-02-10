@@ -33,36 +33,42 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
   ];
 
   return (
-    <div className="animate-fade-in-up">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <div className="animate-fade-in-up max-w-6xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-[calc(100vh-theme(spacing.32))] flex flex-col">
+      {/* Settings title and description with border — shown across all sections */}
+      <div className="px-8 pt-6 pb-4 border-b border-slate-200 flex-shrink-0">
+        <h2 className="text-lg font-bold text-neutral-900">Settings</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Manage your profile, security, notifications, billing, and integrations.</p>
+      </div>
+      <div className="flex flex-row flex-1 min-h-0">
         {/* Settings Sidebar */}
-        <div className="md:col-span-1 space-y-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveSettingsTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                activeSettingsTab === tab.id
-                  ? 'bg-neutral-900 text-white shadow-md'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-neutral-900'
-              }`}
-            >
-              <tab.icon
-                size={18}
-                className={`${
-                  activeSettingsTab === tab.id ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'
+        <aside className="w-64 bg-white border-r border-slate-200 flex flex-col overflow-y-auto custom-scrollbar font-sans flex-shrink-0">
+          <div className="px-4 pt-6 pb-4 space-y-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveSettingsTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                  activeSettingsTab === tab.id
+                    ? 'bg-neutral-900 text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-neutral-900'
                 }`}
-              />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+              >
+                <tab.icon
+                  size={18}
+                  className={`${activeSettingsTab === tab.id ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`}
+                />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </aside>
 
         {/* Settings Content Area */}
-        <div className="md:col-span-3 space-y-6">
+        <main className="flex-1 p-8 overflow-auto">
           {/* Profile Section */}
           {activeSettingsTab === 'profile' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-8">
+            <div className="space-y-8">
               <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                 <div>
                   <h3 className="text-lg font-bold text-neutral-900">Personal Information</h3>
@@ -172,7 +178,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
           {/* Account Security Section */}
           {activeSettingsTab === 'account' && (
             <div className="space-y-6">
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-8">
+              <div className="rounded-xl border border-slate-100 p-6 space-y-6">
                 <div>
                   <h3 className="text-lg font-bold text-neutral-900">Sign-in Method</h3>
                   <p className="text-sm text-slate-500">Manage how you log in to SkillHoop.</p>
@@ -205,7 +211,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+              <div className="rounded-xl border border-slate-100 p-6 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-lg font-bold text-neutral-900">Two-Factor Authentication</h3>
@@ -221,7 +227,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
                 </div>
               </div>
 
-              <div className="bg-white border border-red-100 rounded-2xl p-8 shadow-sm space-y-4">
+              <div className="rounded-xl border border-red-100 bg-red-50/30 p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-bold text-red-600">Delete Account</h3>
@@ -237,7 +243,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
 
           {/* Notifications Section */}
           {activeSettingsTab === 'notifications' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-8">
+            <div className="space-y-8">
               <div className="border-b border-slate-100 pb-6">
                 <h3 className="text-lg font-bold text-neutral-900">Notification Preferences</h3>
                 <p className="text-sm text-slate-500">Choose what updates you want to receive.</p>
@@ -344,7 +350,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
                 <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-indigo-600 rounded-full blur-3xl opacity-20"></div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+              <div className="rounded-xl border border-slate-100 p-6">
                 <h3 className="text-lg font-bold text-neutral-900 mb-6">Usage</h3>
                 <div className="space-y-6">
                   <div>
@@ -368,7 +374,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="rounded-xl border border-slate-100 overflow-hidden">
                 <div className="p-6 border-b border-slate-100">
                   <h3 className="text-lg font-bold text-neutral-900">Billing History</h3>
                 </div>
@@ -414,7 +420,7 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
 
           {/* Integrations Section */}
           {activeSettingsTab === 'integrations' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+            <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-neutral-900">Connected Apps</h3>
                 <p className="text-sm text-slate-500">
@@ -472,16 +478,16 @@ const SettingsView = ({ onBack }: { onBack?: () => void }) => {
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
 };
 
-/** Wrapper used when rendering Settings inside the dashboard (same layout as spec). */
+/** Wrapper used when rendering Settings inside the dashboard. No extra padding — spacing matches other views (e.g. Smart Resume Studio) via dashboard content area p-6 lg:p-8. */
 export const SettingsModule = () => {
   return (
-    <div className="p-8 bg-slate-50 min-h-screen rounded-2xl">
+    <div className="bg-slate-50 min-h-screen">
       <SettingsView />
     </div>
   );
